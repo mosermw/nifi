@@ -56,7 +56,7 @@ public class StandardNiFiContentAccess implements ContentAccess {
     private WebClusterManager clusterManager;
     
     @Override
-    @PreAuthorize("hasRole('ROLE_DFM')")
+    @PreAuthorize("hasRole('ROLE_PROVENANCE')")
     public DownloadableContent getContent(final ContentRequestContext request) {
         // if clustered, send request to cluster manager
         if (properties.isClusterManager()) {

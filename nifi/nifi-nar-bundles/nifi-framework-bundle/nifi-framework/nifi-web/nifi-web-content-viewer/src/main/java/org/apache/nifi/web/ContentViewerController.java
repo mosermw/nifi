@@ -24,7 +24,6 @@ import java.io.InputStream;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -47,7 +46,6 @@ import org.springframework.security.access.AccessDeniedException;
  * (original, formatted, hex). If a data viewer is registered for the detected
  * content type, it will include the markup it generates in the response.
  */
-@WebServlet(name = "ContentViewerController", urlPatterns = {"/viewer"})
 public class ContentViewerController extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(ContentViewerController.class);
