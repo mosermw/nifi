@@ -74,7 +74,7 @@ public class ContentViewerController extends HttpServlet {
             
             // forward to the error page
             final ServletContext viewerContext = servletContext.getContext("/nifi");
-            viewerContext.getRequestDispatcher("/message").include(request, response);
+            viewerContext.getRequestDispatcher("/message").forward(request, response);
             return;
         } catch (final AccessDeniedException ade) {
             request.setAttribute("title", "Acess Denied");
@@ -82,7 +82,7 @@ public class ContentViewerController extends HttpServlet {
             
             // forward to the error page
             final ServletContext viewerContext = servletContext.getContext("/nifi");
-            viewerContext.getRequestDispatcher("/message").include(request, response);
+            viewerContext.getRequestDispatcher("/message").forward(request, response);
             return;
         } catch (final Exception e) {
             request.setAttribute("title", "Error");
@@ -90,7 +90,7 @@ public class ContentViewerController extends HttpServlet {
             
             // forward to the error page
             final ServletContext viewerContext = servletContext.getContext("/nifi");
-            viewerContext.getRequestDispatcher("/message").include(request, response);
+            viewerContext.getRequestDispatcher("/message").forward(request, response);
             return;
         }
 
@@ -112,7 +112,7 @@ public class ContentViewerController extends HttpServlet {
             
             // forward to the error page
             final ServletContext viewerContext = servletContext.getContext("/nifi");
-            viewerContext.getRequestDispatcher("/message").include(request, response);
+            viewerContext.getRequestDispatcher("/message").forward(request, response);
             return;
         }
         
@@ -206,10 +206,30 @@ public class ContentViewerController extends HttpServlet {
                     }
                 });
 
-                // generate the content
-                final ServletContext viewerContext = servletContext.getContext(contentViewerUri);
-                viewerContext.getRequestDispatcher("/view-content").include(request, response);
+                try {
+                    // generate the content
+                    final ServletContext viewerContext = servletContext.getContext(contentViewerUri);
+                    viewerContext.getRequestDispatcher("/view-content").include(request, response);
+                } catch (final Exception e) {
+                    String message = e.getMessage() != null ? e.getMessage() : e.toString();
+                    message = "Unable to generate view of data: " + message;
+                    
+                    // log the error
+                    logger.error(message);
+                    if (logger.isDebugEnabled()) {
+                        logger.error(StringUtils.EMPTY, e);
+                    }
+                    
+                    // populate the request attributes
+                    request.setAttribute("title", "Error");
+                    request.setAttribute("messages", message);
 
+                    // forward to the error page
+                    final ServletContext viewerContext = servletContext.getContext("/nifi");
+                    viewerContext.getRequestDispatcher("/message").forward(request, response);
+                    return;
+                }
+                
                 // remove the request attribute
                 request.removeAttribute(ViewableContent.CONTENT_REQUEST_ATTRIBUTE);
             }
