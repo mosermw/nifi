@@ -419,18 +419,15 @@ public class StandardFlowService implements FlowService, ProtocolHandler {
                      */
                     controller.startHeartbeating();
 
-                    // if configured, start all components
-                    if (autoResumeState) {
-                        try {
-                            controller.startDelayed();
-                        } catch (final Exception ex) {
-                            logger.warn("Unable to start all processors due to invalid flow configuration.");
-                            if (logger.isDebugEnabled()) {
-                                logger.warn(StringUtils.EMPTY, ex);
-                            }
+                    // notify controller that flow is initialized
+                    try {
+                        controller.onFlowInitialized(autoResumeState);
+                    } catch (final Exception ex) {
+                        logger.warn("Unable to start all processors due to invalid flow configuration.");
+                        if (logger.isDebugEnabled()) {
+                            logger.warn(StringUtils.EMPTY, ex);
                         }
                     }
-
                 } else {
                     try {
                         loadFromConnectionResponse(response);
@@ -727,9 +724,7 @@ public class StandardFlowService implements FlowService, ProtocolHandler {
             controller.setPrimary(response.isPrimary());
 
             // start the processors as indicated by the dataflow
-            if (dataFlow.isAutoStartProcessors()) {
-                controller.startDelayed();
-            }
+            controller.onFlowInitialized(dataFlow.isAutoStartProcessors());
 
             loadTemplates(dataFlow.getTemplates());
             loadSnippets(dataFlow.getSnippets());

@@ -1051,9 +1051,7 @@ public final class StandardProcessGroup implements ProcessGroup {
             }
 
             final ScheduledState state = funnel.getScheduledState();
-            if (state == ScheduledState.DISABLED) {
-                throw new IllegalStateException("Funnel is disabled");
-            } else if (state == ScheduledState.RUNNING) {
+            if (state == ScheduledState.RUNNING) {
                 return;
             }
             scheduler.startFunnel(funnel);
@@ -1125,8 +1123,7 @@ public final class StandardProcessGroup implements ProcessGroup {
         }
     }
 
-    @Override
-    public void stopFunnel(final Funnel funnel) {
+    private void stopFunnel(final Funnel funnel) {
         readLock.lock();
         try {
             if (!funnels.containsKey(funnel.getIdentifier())) {
@@ -1141,27 +1138,6 @@ public final class StandardProcessGroup implements ProcessGroup {
             }
 
             scheduler.stopFunnel(funnel);
-        } finally {
-            readLock.unlock();
-        }
-    }
-
-    @Override
-    public void enableFunnel(final Funnel funnel) {
-        readLock.lock();
-        try {
-            if (!funnels.containsKey(funnel.getIdentifier())) {
-                throw new IllegalStateException("No Funnel with ID " + funnel.getIdentifier() + " belongs to this Process Group");
-            }
-
-            final ScheduledState state = funnel.getScheduledState();
-            if (state == ScheduledState.STOPPED) {
-                return;
-            } else if (state == ScheduledState.RUNNING) {
-                throw new IllegalStateException("Funnel is currently running");
-            }
-
-            scheduler.enableFunnel(funnel);
         } finally {
             readLock.unlock();
         }
@@ -1230,26 +1206,6 @@ public final class StandardProcessGroup implements ProcessGroup {
         }
     }
 
-    @Override
-    public void disableFunnel(final Funnel funnel) {
-        readLock.lock();
-        try {
-            if (!funnels.containsKey(funnel.getIdentifier())) {
-                throw new IllegalStateException("No Funnel with ID " + funnel.getIdentifier() + " belongs to this Process Group");
-            }
-
-            final ScheduledState state = funnel.getScheduledState();
-            if (state == ScheduledState.DISABLED) {
-                return;
-            } else if (state == ScheduledState.RUNNING) {
-                throw new IllegalStateException("Funnel is currently running");
-            }
-
-            scheduler.disableFunnel(funnel);
-        } finally {
-            readLock.unlock();
-        }
-    }
 
     @Override
     public void disableInputPort(final Port port) {
@@ -1561,8 +1517,14 @@ public final class StandardProcessGroup implements ProcessGroup {
         return null;
     }
 
+    
     @Override
     public void addFunnel(final Funnel funnel) {
+        addFunnel(funnel, true);
+    }
+    
+    @Override
+    public void addFunnel(final Funnel funnel, final boolean autoStart) {
         writeLock.lock();
         try {
             final Funnel existing = funnels.get(requireNonNull(funnel).getIdentifier());
@@ -1572,6 +1534,10 @@ public final class StandardProcessGroup implements ProcessGroup {
 
             funnel.setProcessGroup(this);
             funnels.put(funnel.getIdentifier(), funnel);
+            
+            if ( autoStart ) {
+                startFunnel(funnel);
+            }
         } finally {
             writeLock.unlock();
         }

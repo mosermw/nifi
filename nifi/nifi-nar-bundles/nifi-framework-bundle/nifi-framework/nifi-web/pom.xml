@@ -28,8 +28,10 @@
         <module>nifi-web-api</module>
         <module>nifi-web-error</module>
         <module>nifi-web-docs</module>
+        <module>nifi-web-content-viewer</module>
         <module>nifi-web-ui</module>
         <module>nifi-jetty</module>
+        <module>nifi-web-content-access</module>
         <module>nifi-ui-extension</module>
     </modules>
     <dependencyManagement>
@@ -54,7 +56,7 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-ui-extension-controller</artifactId>
+                <artifactId>nifi-web-content-viewer</artifactId>
                 <type>war</type>
                 <version>0.1.0-incubating-SNAPSHOT</version>
             </dependency>

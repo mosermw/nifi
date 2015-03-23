@@ -148,7 +148,6 @@ import org.apache.nifi.web.dao.ProcessorDAO;
 import org.apache.nifi.web.dao.RemoteProcessGroupDAO;
 import org.apache.nifi.web.dao.SnippetDAO;
 import org.apache.nifi.web.dao.TemplateDAO;
-import org.apache.nifi.web.util.DownloadableContent;
 import org.apache.nifi.web.util.SnippetUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
