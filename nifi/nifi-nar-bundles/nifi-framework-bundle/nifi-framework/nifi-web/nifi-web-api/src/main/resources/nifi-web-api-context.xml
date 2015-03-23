@@ -124,6 +124,7 @@
         <property name="clusterManager" ref="clusterManager"/>
     </bean>
 
+    <!-- depecrated -->
     <bean id="nifiWebContext" class="org.apache.nifi.web.StandardNiFiWebContext">
         <property name="serviceFacade" ref="serviceFacade"/>
         <property name="properties" ref="nifiProperties"/>
@@ -131,12 +132,15 @@
         <property name="auditService" ref="auditService"/>
         <property name="controllerServiceLookup" ref="controllerServiceProvider"/>
     </bean>
-    <bean id="nifiWebConfigurationContext" class="org.apache.nifi.web.StandardConfigurationContext">
+    
+    <!-- component ui extension configuration context -->
+    <bean id="nifiWebConfigurationContext" class="org.apache.nifi.web.StandardNiFiWebConfigurationContext">
         <property name="serviceFacade" ref="serviceFacade"/>
         <property name="properties" ref="nifiProperties"/>
         <property name="clusterManager" ref="clusterManager"/>
         <property name="auditService" ref="auditService"/>
         <property name="controllerServiceLookup" ref="controllerServiceProvider"/>
+        <property name="reportingTaskProvider" ref="reportingTaskProvider"/>
     </bean>
 
     <!-- rest endpoints -->

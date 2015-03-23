@@ -60,15 +60,20 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.apache.nifi.controller.ControllerServiceLookup;
+import org.apache.nifi.controller.reporting.ReportingTaskProvider;
+import org.apache.nifi.web.api.dto.ControllerServiceDTO;
+import org.apache.nifi.web.api.dto.ReportingTaskDTO;
+import org.apache.nifi.web.api.entity.ControllerServiceEntity;
+import org.apache.nifi.web.api.entity.ReportingTaskEntity;
 import org.apache.nifi.web.util.ClientResponseUtils;
 
 /**
  * Implements the NiFiWebContext interface to support a context in both
  * standalone and clustered environments.
  */
-public class StandardConfigurationContext implements NiFiWebConfigurationContext {
+public class StandardNiFiWebConfigurationContext implements NiFiWebConfigurationContext {
 
-    private static final Logger logger = LoggerFactory.getLogger(StandardConfigurationContext.class);
+    private static final Logger logger = LoggerFactory.getLogger(StandardNiFiWebConfigurationContext.class);
     public static final String CLIENT_ID_PARAM = "clientId";
     public static final String REVISION_PARAM = "revision";
     public static final String VERBOSE_PARAM = "verbose";
@@ -77,6 +82,7 @@ public class StandardConfigurationContext implements NiFiWebConfigurationContext
     private NiFiServiceFacade serviceFacade;
     private WebClusterManager clusterManager;
     private ControllerServiceLookup controllerServiceLookup;
+    private ReportingTaskProvider reportingTaskProvider;
     private AuditService auditService;
 
     @Override
@@ -189,8 +195,10 @@ public class StandardConfigurationContext implements NiFiWebConfigurationContext
                 componentFacade = new ProcessorFacade();
                 break;
             case ControllerServiceConfiguration: 
+                componentFacade = new ControllerServiceFacade();
                 break;
             case ReportingTaskConfiguration:
+                componentFacade = new ReportingTaskFacade();
                 break;
         }
         
@@ -219,8 +227,10 @@ public class StandardConfigurationContext implements NiFiWebConfigurationContext
                 componentFacade = new ProcessorFacade();
                 break;
             case ControllerServiceConfiguration: 
+                componentFacade = new ControllerServiceFacade();
                 break;
             case ReportingTaskConfiguration:
+                componentFacade = new ReportingTaskFacade();
                 break;
         }
         
@@ -231,11 +241,31 @@ public class StandardConfigurationContext implements NiFiWebConfigurationContext
         return componentFacade.setAnnotationData(requestContext, annotationData);
     }
 
+    /**
+     * Facade over accessing different types of NiFi components.
+     */
     private interface ComponentFacade {
+        /**
+         * Gets the component details using the specified request context.
+         * 
+         * @param requestContext
+         * @return 
+         */
         ComponentDetails getComponentDetails(NiFiWebRequestContext requestContext);
+        
+        /**
+         * Sets the annotation data using the specified request context.
+         * 
+         * @param requestContext
+         * @param annotationData
+         * @return 
+         */
         ComponentDetails setAnnotationData(NiFiWebConfigurationRequestContext requestContext, String annotationData);
     }
     
+    /**
+     * Interprets the request/response with the underlying Processor model.
+     */
     private class ProcessorFacade implements ComponentFacade {
         @Override
         public ComponentDetails getComponentDetails(final NiFiWebRequestContext requestContext) {
@@ -343,6 +373,224 @@ public class StandardConfigurationContext implements NiFiWebConfigurationContext
     }
     
     /**
+     * Interprets the request/response with the underlying ControllerService model.
+     */
+    private class ControllerServiceFacade implements ComponentFacade {
+        @Override
+        public ComponentDetails getComponentDetails(final NiFiWebRequestContext requestContext) {
+            final String id = requestContext.getId();
+            final ControllerServiceDTO controllerService;
+            
+            // if the lookup has the service that means we are either a node or
+            // the ncm and the service is available there only
+            if (controllerServiceLookup.getControllerService(id) != null) {
+                controllerService = serviceFacade.getControllerService(id);
+            } else {
+                // create the request URL
+                URI requestUrl;
+                try {
+                    String path = "/nifi-api/controller/controller-services/node/" + URLEncoder.encode(id, "UTF-8");
+                    requestUrl = new URI(requestContext.getScheme(), null, "localhost", 0, path, null, null);
+                } catch (final URISyntaxException | UnsupportedEncodingException use) {
+                    throw new ClusterRequestException(use);
+                }
+
+                // set the request parameters
+                MultivaluedMap<String, String> parameters = new MultivaluedMapImpl();
+
+                // replicate request
+                NodeResponse nodeResponse = clusterManager.applyRequest(HttpMethod.GET, requestUrl, parameters, getHeaders(requestContext));
+
+                // check for issues replicating request
+                checkResponse(nodeResponse, id);
+
+                // return controller service
+                final ControllerServiceEntity entity = nodeResponse.getClientResponse().getEntity(ControllerServiceEntity.class);
+                controllerService = entity.getControllerService();
+            }
+
+            // return the controller service info
+            return getComponentConfiguration(controllerService);
+        }
+
+        @Override
+        public ComponentDetails setAnnotationData(final NiFiWebConfigurationRequestContext requestContext, final String annotationData) {
+            final Revision revision = requestContext.getRevision();
+            final String id = requestContext.getId();
+            
+            final ControllerServiceDTO controllerService;
+            if (controllerServiceLookup.getControllerService(id) != null) {
+                final ControllerServiceDTO controllerServiceDto = new ControllerServiceDTO();
+                controllerServiceDto.setId(id);
+                controllerServiceDto.setAnnotationData(annotationData);
+                
+                final ConfigurationSnapshot<ControllerServiceDTO> response = serviceFacade.updateControllerService(revision, controllerServiceDto);
+                controllerService = response.getConfiguration();
+            } else {
+                // create the request URL
+                URI requestUrl;
+                try {
+                    String path = "/nifi-api/controller/controller-services/node/" + URLEncoder.encode(id, "UTF-8");
+                    requestUrl = new URI(requestContext.getScheme(), null, "localhost", 0, path, null, null);
+                } catch (final URISyntaxException | UnsupportedEncodingException use) {
+                    throw new ClusterRequestException(use);
+                }
+
+                // create the revision
+                RevisionDTO revisionDto = new RevisionDTO();
+                revisionDto.setClientId(revision.getClientId());
+                revisionDto.setVersion(revision.getVersion());
+
+                // create the controller service entity
+                ControllerServiceEntity controllerServiceEntity = new ControllerServiceEntity();
+                controllerServiceEntity.setRevision(revisionDto);
+
+                // create the controller service dto
+                ControllerServiceDTO controllerServiceDto = new ControllerServiceDTO();
+                controllerServiceEntity.setControllerService(controllerServiceDto);
+                controllerServiceDto.setId(id);
+                controllerServiceDto.setAnnotationData(annotationData);
+
+                // set the content type to json
+                final Map<String, String> headers = getHeaders(requestContext);
+                headers.put("Content-Type", "application/json");
+
+                // replicate request
+                NodeResponse nodeResponse = clusterManager.applyRequest(HttpMethod.PUT, requestUrl, controllerServiceEntity, headers);
+
+                // check for issues replicating request
+                checkResponse(nodeResponse, id);
+                
+                // return processor
+                final ControllerServiceEntity entity = nodeResponse.getClientResponse().getEntity(ControllerServiceEntity.class);
+                controllerService = entity.getControllerService();
+            }
+            
+            // return the controller service info
+            return getComponentConfiguration(controllerService);
+        }
+        
+        private ComponentDetails getComponentConfiguration(final ControllerServiceDTO controllerService) {
+            return new ComponentDetails.Builder()
+                    .id(controllerService.getId())
+                    .name(controllerService.getName())
+                    .state(controllerService.getState())
+                    .annotationData(controllerService.getAnnotationData())
+                    .properties(controllerService.getProperties())
+                    .validateErrors(controllerService.getValidationErrors()).build();
+        }
+    }
+    
+    /**
+     * Interprets the request/response with the underlying ControllerService model.
+     */
+    private class ReportingTaskFacade implements ComponentFacade {
+        @Override
+        public ComponentDetails getComponentDetails(final NiFiWebRequestContext requestContext) {
+            final String id = requestContext.getId();
+            final ReportingTaskDTO reportingTask;
+            
+            // if the provider has the service that means we are either a node or
+            // the ncm and the service is available there only
+            if (reportingTaskProvider.getReportingTaskNode(id) != null) {
+                reportingTask = serviceFacade.getReportingTask(id);
+            } else {
+                // create the request URL
+                URI requestUrl;
+                try {
+                    String path = "/nifi-api/controller/reporting-tasks/node/" + URLEncoder.encode(id, "UTF-8");
+                    requestUrl = new URI(requestContext.getScheme(), null, "localhost", 0, path, null, null);
+                } catch (final URISyntaxException | UnsupportedEncodingException use) {
+                    throw new ClusterRequestException(use);
+                }
+
+                // set the request parameters
+                MultivaluedMap<String, String> parameters = new MultivaluedMapImpl();
+
+                // replicate request
+                NodeResponse nodeResponse = clusterManager.applyRequest(HttpMethod.GET, requestUrl, parameters, getHeaders(requestContext));
+
+                // check for issues replicating request
+                checkResponse(nodeResponse, id);
+
+                // return processor
+                final ReportingTaskEntity entity = nodeResponse.getClientResponse().getEntity(ReportingTaskEntity.class);
+                reportingTask = entity.getReportingTask();
+            }
+
+            // return the reporting task info
+            return getComponentConfiguration(reportingTask);
+        }
+
+        @Override
+        public ComponentDetails setAnnotationData(final NiFiWebConfigurationRequestContext requestContext, final String annotationData) {
+            final Revision revision = requestContext.getRevision();
+            final String id = requestContext.getId();
+            
+            final ReportingTaskDTO reportingTask;
+            if (reportingTaskProvider.getReportingTaskNode(id) != null) {
+                final ReportingTaskDTO reportingTaskDto = new ReportingTaskDTO();
+                reportingTaskDto.setId(id);
+                reportingTaskDto.setAnnotationData(annotationData);
+                
+                final ConfigurationSnapshot<ReportingTaskDTO> response = serviceFacade.updateReportingTask(revision, reportingTaskDto);
+                reportingTask = response.getConfiguration();
+            } else {
+                // create the request URL
+                URI requestUrl;
+                try {
+                    String path = "/nifi-api/controller/reporting-tasks/node/" + URLEncoder.encode(id, "UTF-8");
+                    requestUrl = new URI(requestContext.getScheme(), null, "localhost", 0, path, null, null);
+                } catch (final URISyntaxException | UnsupportedEncodingException use) {
+                    throw new ClusterRequestException(use);
+                }
+
+                // create the revision
+                RevisionDTO revisionDto = new RevisionDTO();
+                revisionDto.setClientId(revision.getClientId());
+                revisionDto.setVersion(revision.getVersion());
+
+                // create the reporting task entity
+                ReportingTaskEntity reportingTaskEntity = new ReportingTaskEntity();
+                reportingTaskEntity.setRevision(revisionDto);
+
+                // create the reporting task dto
+                ReportingTaskDTO reportingTaskDto = new ReportingTaskDTO();
+                reportingTaskEntity.setReportingTask(reportingTaskDto);
+                reportingTaskDto.setId(id);
+                reportingTaskDto.setAnnotationData(annotationData);
+
+                // set the content type to json
+                final Map<String, String> headers = getHeaders(requestContext);
+                headers.put("Content-Type", "application/json");
+
+                // replicate request
+                NodeResponse nodeResponse = clusterManager.applyRequest(HttpMethod.PUT, requestUrl, reportingTaskEntity, headers);
+
+                // check for issues replicating request
+                checkResponse(nodeResponse, id);
+                
+                // return reporting task
+                final ReportingTaskEntity entity = nodeResponse.getClientResponse().getEntity(ReportingTaskEntity.class);
+                reportingTask = entity.getReportingTask();
+            }
+            
+            // return the processor info
+            return getComponentConfiguration(reportingTask);
+        }
+        
+        private ComponentDetails getComponentConfiguration(final ReportingTaskDTO reportingTask) {
+            return new ComponentDetails.Builder()
+                    .id(reportingTask.getId())
+                    .name(reportingTask.getName())
+                    .state(reportingTask.getState())
+                    .annotationData(reportingTask.getAnnotationData())
+                    .properties(reportingTask.getProperties())
+                    .validateErrors(reportingTask.getValidationErrors()).build();
+        }
+    }
+    
+    /**
      * Gets the headers for the request to replicate to each node while
      * clustered.
      *
@@ -412,6 +660,10 @@ public class StandardConfigurationContext implements NiFiWebConfigurationContext
 
     public void setControllerServiceLookup(ControllerServiceLookup controllerServiceLookup) {
         this.controllerServiceLookup = controllerServiceLookup;
+    }
+
+    public void setReportingTaskProvider(ReportingTaskProvider reportingTaskProvider) {
+        this.reportingTaskProvider = reportingTaskProvider;
     }
 
 }
