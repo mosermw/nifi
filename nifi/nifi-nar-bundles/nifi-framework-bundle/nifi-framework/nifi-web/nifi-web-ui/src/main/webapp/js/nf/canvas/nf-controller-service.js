@@ -1006,6 +1006,23 @@ nf.ControllerService = (function () {
         });
     };
     
+    /**
+     * Gets a property descriptor for the controller service currently being configured.
+     * 
+     * @param {type} propertyName
+     */
+    var getControllerServicePropertyDescriptor = function (propertyName) {
+        var details = $('#controller-service-configuration').data('controllerServiceDetails');
+        return $.ajax({
+            type: 'GET',
+            url: details.uri + '/descriptors',
+            data: {
+                propertyName: propertyName
+            },
+            dataType: 'json'
+        }).fail(nf.Common.handleAjaxError);
+    };
+    
     return {
         /**
          * Initializes the controller service configuration dialog.
@@ -1074,7 +1091,8 @@ nf.ControllerService = (function () {
             // initialize the property table
             $('#controller-service-properties').propertytable({
                 readOnly: false,
-                newPropertyDialogContainer: '#new-controller-service-property-container'
+                newPropertyDialogContainer: '#new-controller-service-property-container',
+                descriptorDeferred: getControllerServicePropertyDescriptor
             });
             
             // initialize the disable service dialog
@@ -1217,7 +1235,8 @@ nf.ControllerService = (function () {
                 // initialize the property table
                 $('#controller-service-properties').propertytable('destroy').propertytable({
                     readOnly: false,
-                    newPropertyDialogContainer: '#new-controller-service-property-container'
+                    newPropertyDialogContainer: '#new-controller-service-property-container',
+                    descriptorDeferred: getControllerServicePropertyDescriptor
                 });
                 
                 // update the mode

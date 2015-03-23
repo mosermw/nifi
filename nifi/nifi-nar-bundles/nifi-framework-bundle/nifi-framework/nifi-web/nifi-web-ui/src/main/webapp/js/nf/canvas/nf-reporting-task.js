@@ -216,6 +216,23 @@ nf.ReportingTask = (function () {
         }).fail(nf.Common.handleAjaxError);
     };
     
+    /**
+     * Gets a property descriptor for the controller service currently being configured.
+     * 
+     * @param {type} propertyName
+     */
+    var getReportingTaskPropertyDescriptor = function (propertyName) {
+        var details = $('#reporting-task-configuration').data('reportingTaskDetails');
+        return $.ajax({
+            type: 'GET',
+            url: details.uri + '/descriptors',
+            data: {
+                propertyName: propertyName
+            },
+            dataType: 'json'
+        }).fail(nf.Common.handleAjaxError);
+    };
+    
     return {
         /**
          * Initializes the reporting task configuration dialog.
@@ -272,7 +289,8 @@ nf.ReportingTask = (function () {
             // initialize the property table
             $('#reporting-task-properties').propertytable({
                 readOnly: false,
-                newPropertyDialogContainer: '#new-reporting-task-property-container'
+                newPropertyDialogContainer: '#new-reporting-task-property-container',
+                deferredDescriptor: getReportingTaskPropertyDescriptor
             });
         },
         
@@ -291,7 +309,8 @@ nf.ReportingTask = (function () {
                 // initialize the property table
                 $('#reporting-task-properties').propertytable('destroy').propertytable({
                     readOnly: false,
-                    newPropertyDialogContainer: '#new-reporting-task-property-container'
+                    newPropertyDialogContainer: '#new-reporting-task-property-container',
+                    deferredDescriptor: getReportingTaskPropertyDescriptor
                 });
                 
                 // update the mode

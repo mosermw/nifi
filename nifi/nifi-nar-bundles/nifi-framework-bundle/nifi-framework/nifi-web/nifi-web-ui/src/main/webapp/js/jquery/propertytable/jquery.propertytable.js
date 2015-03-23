@@ -1076,34 +1076,42 @@
                     // optionally add a add new property button
                     if (options.readOnly !== true && nf.Common.isDefinedAndNotNull(options.newPropertyDialogContainer)) {
                         // build the new property dialog
-                        var newPropertyDialogMarkup = '<div class="new-property-dialog dialog">' +
-                                '<div>' +
-                                '<div class="setting-name">Property name</div>' +
-                                '<div class="setting-field new-property-name-container">' +
-                                '<input class="new-property-name" type="text"/>' +
-                                '</div>' +
-                                '<div class="setting-name" style="margin-top: 36px;">Property value</div>' +
-                                '<div class="setting-field">' +
-                                '<div class="new-property-value"></div>' +
-                                '</div>' +
-                                '</div>' +
-                                '<div class="new-property-button-container">' +
-                                '<div class="new-property-ok button button-normal">Ok</div>' +
-                                '<div class="new-property-cancel button button-normal">Cancel</div>' +
-                                '<div class="clear"></div>' +
-                                '</div>' +
+                        var newPropertyDialogMarkup = 
+                                '<div class="new-property-dialog dialog">' +
+                                    '<div>' +
+                                        '<div class="setting-name">Property name</div>' +
+                                        '<div class="setting-field new-property-name-container">' +
+                                            '<input class="new-property-name" type="text"/>' +
+                                        '</div>' +
+                                    '</div>' +
+                                    '<div class="new-property-button-container">' +
+                                        '<div class="new-property-ok button button-normal">Ok</div>' +
+                                        '<div class="new-property-cancel button button-normal">Cancel</div>' +
+                                        '<div class="clear"></div>' +
+                                    '</div>' +
                                 '</div>';
 
                         var newPropertyDialog = $(newPropertyDialogMarkup).appendTo(options.newPropertyDialogContainer);
                         var newPropertyNameField = newPropertyDialog.find('input.new-property-name');
-                        var newPropertyValueField = newPropertyDialog.find('div.new-property-value');
 
                         var add = function () {
                             var propertyName = $.trim(newPropertyNameField.val());
-                            var propertyValue = newPropertyValueField.nfeditor('getValue');
 
                             // ensure the property name and value is specified
                             if (propertyName !== '') {
+                                // load the property descriptor if possible
+                                if (typeof options.descriptorDeferred === 'function') {
+                                    options.descriptorDeferred(propertyName).done(function(response) {
+                                        var descriptor = response.propertyDescriptor;
+                                        
+                                        // store the descriptor for use later
+                                        var descriptors = table.data('descriptors');
+                                        if (!nf.Common.isUndefined(descriptors)) {
+                                            descriptors[descriptor.name] = descriptor;
+                                        }
+                                    });
+                                }
+                                
                                 // add a row for the new property
                                 var propertyGrid = table.data('gridInstance');
                                 var propertyData = propertyGrid.getData();
@@ -1113,7 +1121,7 @@
                                     property: propertyName,
                                     displayName: propertyName,
                                     previousValue: null,
-                                    value: propertyValue,
+                                    value: null,
                                     type: 'userDefined'
                                 });
                             } else {
@@ -1131,34 +1139,11 @@
                             newPropertyDialog.hide();
                         };
 
-                        // create the editor
-                        newPropertyValueField.addClass(editorClass).nfeditor({
-                            languageId: languageId,
-                            width: 318,
-                            minWidth: 318,
-                            height: 106,
-                            minHeight: 106,
-                            resizable: true,
-                            escape: cancel,
-                            enter: add
-                        });
-
                         // make the new property dialog draggable
                         newPropertyDialog.draggable({
                             cancel: 'input, textarea, pre, .button, .' + editorClass,
                             containment: 'body'
                         }).on('click', 'div.new-property-ok', add).on('click', 'div.new-property-cancel', cancel);
-
-                        // enable tabs in the property value
-                        newPropertyNameField.on('keydown', function (e) {
-                            if (e.which === $.ui.keyCode.ENTER && !e.shiftKey) {
-                                add();
-                            } else if (e.which === $.ui.keyCode.ESCAPE) {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                cancel();
-                            }
-                        });
 
                         // build the control to open the new property dialog
                         var addProperty = $('<div class="add-property"></div>').appendTo(header);
@@ -1168,16 +1153,11 @@
 
                             // clear the dialog
                             newPropertyNameField.val('');
-                            newPropertyValueField.nfeditor('setValue', '');
-
-                            // reset the add property dialog position/size
-                            newPropertyValueField.nfeditor('setSize', 318, 106);
 
                             // open the new property dialog
                             newPropertyDialog.center().show();
 
-                            // give the property name focus
-                            newPropertyValueField.nfeditor('refresh');
+                            // set the initial focus
                             newPropertyNameField.focus();
                         }).on('mouseenter', function () {
                             $(this).removeClass('add-icon-bg').addClass('add-icon-bg-hover');
@@ -1312,8 +1292,10 @@
                 var propertyData = propertyGrid.getData();
                 $.each(propertyData.getItems(), function () {
                     if (this.hidden === true) {
+                        // hidden properties were removed by the user, clear the value
                         properties[this.property] = null;
                     } else if (this.value !== this.previousValue) {
+                        // the value has changed
                         properties[this.property] = this.value;
                     }
                 });

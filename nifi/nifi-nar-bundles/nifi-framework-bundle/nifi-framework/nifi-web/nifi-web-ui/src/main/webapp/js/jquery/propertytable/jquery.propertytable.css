@@ -77,10 +77,8 @@ div.new-property-dialog {
     border: 3px solid #365C6A;
     box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.9);
     cursor: move;
-}
-
-div.new-property-dialog .nfel-editor {
-    margin-bottom: 35px;
+    width: 300px;
+    height: 72px;
 }
 
 div.new-property-name-container {
@@ -90,7 +88,6 @@ div.new-property-name-container {
     right: 10px;
     padding-right: 10px;
     overflow: hidden; 
-    margin-bottom: 10px;
 }
 
 input.new-property-name {

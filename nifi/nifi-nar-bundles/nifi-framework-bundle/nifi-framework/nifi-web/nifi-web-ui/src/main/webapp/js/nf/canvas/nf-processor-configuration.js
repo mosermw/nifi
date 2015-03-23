@@ -467,7 +467,18 @@ nf.ProcessorConfiguration = (function () {
             // initialize the property table
             $('#processor-properties').propertytable({
                 readOnly: false,
-                newPropertyDialogContainer: '#new-processor-property-container'
+                newPropertyDialogContainer: '#new-processor-property-container',
+                descriptorDeferred: function(propertyName) {
+                    var processor = $('#processor-configuration').data('processorDetails');
+                    return $.ajax({
+                        type: 'GET',
+                        url: processor.uri + '/descriptors',
+                        data: {
+                            propertyName: propertyName
+                        },
+                        dataType: 'json'
+                    }).fail(nf.Common.handleAjaxError);
+                }
             });
         },
         
