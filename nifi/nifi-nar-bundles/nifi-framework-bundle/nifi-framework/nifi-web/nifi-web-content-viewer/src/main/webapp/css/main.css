@@ -87,6 +87,15 @@
     padding: 2px;
 }
 
+#trancation-message {
+    position: absolute;
+    left: 100px;
+    bottom: 35px;
+    color: #666;
+    font-style: italic;
+    font-size: 11px;
+}
+
 /* no viewer */
 
 #no-viewer {

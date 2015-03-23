@@ -29,3 +29,4 @@
         <input type="hidden" name="caption" value="" />
     </form>
 </div>
+<div id="trancation-message">Showing up to 1.5kb</div>

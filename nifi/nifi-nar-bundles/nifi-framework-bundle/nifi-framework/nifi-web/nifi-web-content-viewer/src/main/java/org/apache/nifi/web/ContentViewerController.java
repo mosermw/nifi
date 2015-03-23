@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.nifi.stream.io.StreamUtils;
 import org.apache.nifi.web.ViewableContent.DisplayMode;
 import org.apache.tika.detect.DefaultDetector;
 import org.apache.tika.io.TikaInputStream;
@@ -49,6 +50,9 @@ import org.springframework.security.access.AccessDeniedException;
 public class ContentViewerController extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(ContentViewerController.class);
+    
+    // 1.5kb - multiple of 12 (3 bytes = 4 base 64 encoded chars)
+    private final static int BUFFER_LENGTH = 1536;
     
     /**
      * Gets the content and defers to registered viewers to generate the markup.
@@ -151,8 +155,17 @@ public class ContentViewerController extends HttpServlet {
         
         // generate the markup for the content based on the display mode
         if (DisplayMode.Hex.equals(displayMode)) {
-            // convert stream into the base 64 bytes
-            final byte[] bytes = IOUtils.toByteArray(bis);
+            final byte[] buffer = new byte[BUFFER_LENGTH];
+            final int read = StreamUtils.fillBuffer(bis, buffer, false);
+            
+            // trim the byte array if necessary
+            byte[] bytes = buffer;
+            if (read != buffer.length) {
+                bytes = new byte[read];
+                System.arraycopy(buffer, 0, bytes, 0, read);
+            }
+            
+            // convert bytes into the base 64 bytes
             final String base64 = Base64.encodeBase64String(bytes);
             
             // defer to the jsp
