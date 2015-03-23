@@ -20,6 +20,7 @@ package org.apache.nifi.web;
  * Types of UI extensions.
  */
 public enum UiExtensionType {
+    ContentViewer,
     ProcessorConfiguration,
     ControllerServiceConfiguration,
     ReportingTaskConfiguration
