@@ -231,7 +231,7 @@ public class JettyServer implements NiFiServer {
                 @Deprecated
                 List<String> customUiProcessorTypes = getWarExtensions(war, "META-INF/nifi-processor");
 
-                // see if this war is a custom processor ui
+                // see if this war is a content viewer
                 List<String> contentViewerMimeTypes = getWarExtensions(war, "META-INF/nifi-content-viewer");
                 
                 // identify all known extension types in the war
@@ -677,16 +677,13 @@ public class JettyServer implements NiFiServer {
                 }
             }
             
-            // ensure web api is loaded and inject the ui extensions
-            if (webApiContext != null) {
-                final ServletContext webApiServletContext = webApiContext.getServletHandler().getServletContext();
-                webApiServletContext.setAttribute("nifi-ui-extensions", uiExtensions);
-            }
-
             // ensure the appropriate wars deployed successfully before injecting the NiFi context and security filters - 
             // this must be done after starting the server (and ensuring there were no start up failures)
             if (webApiContext != null) {
                 final ServletContext webApiServletContext = webApiContext.getServletHandler().getServletContext();
+                webApiServletContext.setAttribute("nifi-ui-extensions", uiExtensions);
+                
+                // get the application context
                 final WebApplicationContext webApplicationContext = WebApplicationContextUtils.getRequiredWebApplicationContext(webApiServletContext);
 
                 // @Deprecated
