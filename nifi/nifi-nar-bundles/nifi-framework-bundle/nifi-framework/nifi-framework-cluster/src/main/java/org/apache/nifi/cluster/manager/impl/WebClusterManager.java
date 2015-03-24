@@ -973,6 +973,11 @@ public class WebClusterManager implements HttpClusterManager, ProtocolHandler, C
                         schedulingStrategy, taskSchedulingPeriod, componentLog, this);
                 reportingTask.initialize(config);
 
+                final String annotationData = DomUtils.getChildText(taskElement, "annotationData");
+                if ( annotationData != null ) {
+                    reportingTaskNode.setAnnotationData(annotationData.trim());
+                }
+                
                 final Map<PropertyDescriptor, String> resolvedProps;
                 try (final NarCloseable narCloseable = NarCloseable.withNarLoader()) {
                     resolvedProps = new HashMap<>();
@@ -984,6 +989,11 @@ public class WebClusterManager implements HttpClusterManager, ProtocolHandler, C
 
                 for (final Map.Entry<PropertyDescriptor, String> entry : resolvedProps.entrySet()) {
                     reportingTaskNode.setProperty(entry.getKey().getName(), entry.getValue());
+                }
+                
+                final String comments = DomUtils.getChildText(taskElement, "comment");
+                if ( comments != null ) {
+                    reportingTaskNode.setComments(comments);
                 }
 
                 reportingTaskNode.setScheduledState(scheduledState);
