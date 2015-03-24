@@ -52,6 +52,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.admin.service.UserService;
 import org.apache.nifi.annotation.lifecycle.OnAdded;
 import org.apache.nifi.annotation.lifecycle.OnRemoved;
+import org.apache.nifi.annotation.lifecycle.OnShutdown;
 import org.apache.nifi.cluster.BulletinsPayload;
 import org.apache.nifi.cluster.HeartbeatPayload;
 import org.apache.nifi.cluster.protocol.DataFlow;
@@ -106,6 +107,7 @@ import org.apache.nifi.controller.scheduling.StandardProcessScheduler;
 import org.apache.nifi.controller.scheduling.TimerDrivenSchedulingAgent;
 import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceProvider;
+import org.apache.nifi.controller.service.StandardConfigurationContext;
 import org.apache.nifi.controller.service.StandardControllerServiceProvider;
 import org.apache.nifi.controller.status.ConnectionStatus;
 import org.apache.nifi.controller.status.PortStatus;
@@ -1073,7 +1075,23 @@ public class FlowController implements EventAccess, ControllerServiceProvider, R
 
             // Trigger any processors' methods marked with @OnShutdown to be called
             rootGroup.shutdown();
-
+            
+            // invoke any methods annotated with @OnShutdown on Controller Services
+            for ( final ControllerServiceNode serviceNode : getAllControllerServices() ) {
+                try (final NarCloseable narCloseable = NarCloseable.withNarLoader()) {
+                    final ConfigurationContext configContext = new StandardConfigurationContext(serviceNode, controllerServiceProvider);
+                    ReflectionUtils.quietlyInvokeMethodsWithAnnotation(OnShutdown.class, serviceNode.getControllerServiceImplementation(), configContext);
+                }
+            }
+            
+            // invoke any methods annotated with @OnShutdown on Reporting Tasks
+            for ( final ReportingTaskNode taskNode : getAllReportingTasks() ) {
+                final ConfigurationContext configContext = taskNode.getConfigurationContext();
+                try (final NarCloseable narCloseable = NarCloseable.withNarLoader()) {
+                    ReflectionUtils.quietlyInvokeMethodsWithAnnotation(OnShutdown.class, taskNode.getReportingTask(), configContext);
+                }
+            }
+            
             try {
                 this.timerDrivenEngineRef.get().awaitTermination(gracefulShutdownSeconds / 2, TimeUnit.SECONDS);
                 this.eventDrivenEngineRef.get().awaitTermination(gracefulShutdownSeconds / 2, TimeUnit.SECONDS);
