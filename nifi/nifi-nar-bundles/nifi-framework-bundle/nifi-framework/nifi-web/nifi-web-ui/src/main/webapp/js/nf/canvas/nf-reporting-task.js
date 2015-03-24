@@ -64,6 +64,9 @@ nf.ReportingTask = (function () {
         if ($('#reporting-task-name').val() !== details.name) {
             return true;
         }
+        if ($('#reporting-task-comments').val() !== details['comments']) {
+            return true;
+        }
         if ($('#reporting-task-enabled').hasClass('checkbox-checked') && details['state'] === 'DISABLED') {
             return true;
         } else if ($('#reporting-task-enabled').hasClass('checkbox-unchecked') && (details['state'] === 'RUNNING' || details['state'] === 'STOPPED')) {
@@ -117,6 +120,7 @@ nf.ReportingTask = (function () {
         reportingTaskDto['name'] = $('#reporting-task-name').val();
         reportingTaskDto['schedulingStrategy'] = schedulingStrategy;
         reportingTaskDto['schedulingPeriod'] = schedulingPeriod.val();
+        reportingTaskDto['comments'] = $('#reporting-task-comments').val();
         
         // mark the processor disabled if appropriate
         if ($('#reporting-task-enabled').hasClass('checkbox-unchecked')) {
@@ -248,6 +252,9 @@ nf.ReportingTask = (function () {
                     }, {
                         name: 'Properties',
                         tabContentId: 'reporting-task-properties-tab-content'
+                    }, {
+                        name: 'Comments',
+                        tabContentId: 'reporting-task-comments-tab-content'
                     }],
                 select: function () {
                     // update the property table size in case this is the first time its rendered
@@ -353,6 +360,7 @@ nf.ReportingTask = (function () {
                 nf.Common.populateField('reporting-task-type', nf.Common.substringAfterLast(reportingTask['type'], '.'));
                 $('#reporting-task-name').val(reportingTask['name']);
                 $('#reporting-task-enabled').removeClass('checkbox-unchecked checkbox-checked').addClass(reportingTaskEnableStyle);
+                $('#reporting-task-comments').val(reportingTask['comments']);
 
                 // select the availability when appropriate
                 if (nf.Canvas.isClustered()) {
@@ -567,6 +575,7 @@ nf.ReportingTask = (function () {
                 nf.Common.populateField('reporting-task-id', reportingTask['id']);
                 nf.Common.populateField('reporting-task-type', nf.Common.substringAfterLast(reportingTask['type'], '.'));
                 nf.Common.populateField('read-only-reporting-task-name', reportingTask['name']);
+                nf.Common.populateField('read-only-reporting-task-comments', reportingTask['comments']);
 
                 // select the availability when appropriate
                 if (nf.Canvas.isClustered()) {

@@ -890,7 +890,7 @@ public final class FingerprintFactory {
     	builder.append(dto.getId());
     	builder.append(dto.getType());
     	builder.append(dto.getName());
-    	builder.append(dto.getComment());
+    	builder.append(dto.getComments());
     	builder.append(dto.getSchedulingPeriod());
     	builder.append(dto.getSchedulingStrategy());
     	builder.append(dto.getAnnotationData());

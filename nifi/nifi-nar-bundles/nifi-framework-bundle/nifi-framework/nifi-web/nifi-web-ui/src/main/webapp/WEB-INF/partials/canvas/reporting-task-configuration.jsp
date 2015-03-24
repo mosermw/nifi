@@ -92,6 +92,15 @@
             <div id="reporting-task-properties-tab-content" class="configuration-tab">
                 <div id="reporting-task-properties"></div>
             </div>
+            <div id="reporting-task-comments-tab-content" class="configuration-tab">
+                <textarea cols="30" rows="4" id="reporting-task-comments" name="reporting-task-comments" class="reporting-task-editable setting-input"></textarea>
+                <div class="setting reporting-task-read-only hidden">
+                    <div class="setting-name">Comments</div>
+                    <div class="setting-field">
+                        <span id="read-only-reporting-task-comments"></span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

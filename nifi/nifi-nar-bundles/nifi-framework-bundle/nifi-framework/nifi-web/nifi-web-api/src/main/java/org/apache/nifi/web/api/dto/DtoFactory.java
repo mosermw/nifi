@@ -848,7 +848,7 @@ public final class DtoFactory {
         dto.setState(reportingTaskNode.getScheduledState().name());
         dto.setActiveThreadCount(reportingTaskNode.getActiveThreadCount());
         dto.setAnnotationData(reportingTaskNode.getAnnotationData());
-//        dto.setComments(reportingTaskNode.getComments());
+        dto.setComments(reportingTaskNode.getComments());
 
         final Map<String, String> defaultSchedulingPeriod = new HashMap<>();
         defaultSchedulingPeriod.put(SchedulingStrategy.TIMER_DRIVEN.name(), SchedulingStrategy.TIMER_DRIVEN.getDefaultSchedulingPeriod());

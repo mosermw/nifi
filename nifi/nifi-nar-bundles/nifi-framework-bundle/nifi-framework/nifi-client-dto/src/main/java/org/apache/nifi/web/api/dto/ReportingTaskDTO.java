@@ -27,10 +27,10 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "reportingTask")
 public class ReportingTaskDTO extends NiFiComponentDTO {
 	private String name;
-	private String comment;
 	private String type;
 	private String state;
 	private String availability;
+    private String comments;
 	
 	private String schedulingPeriod;
 	private String schedulingStrategy;
@@ -58,15 +58,15 @@ public class ReportingTaskDTO extends NiFiComponentDTO {
 	}
 
 	/**
-	 * The user-defined comment for the reporting task
+	 * The user-defined comments for the reporting task
 	 * @return
 	 */
-	public String getComment() {
-		return comment;
+	public String getComments() {
+		return comments;
 	}
 
-	public void setComment(String comment) {
-		this.comment = comment;
+	public void setComments(String comments) {
+		this.comments = comments;
 	}
 
 	/**

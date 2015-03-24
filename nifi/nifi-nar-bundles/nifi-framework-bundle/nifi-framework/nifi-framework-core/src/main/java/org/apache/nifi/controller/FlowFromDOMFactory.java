@@ -102,7 +102,7 @@ public class FlowFromDOMFactory {
     	
     	dto.setId(getString(element, "id"));
     	dto.setName(getString(element, "name"));
-    	dto.setComment(getString(element, "comment"));
+    	dto.setComments(getString(element, "comment"));
     	dto.setType(getString(element, "class"));
     	dto.setSchedulingPeriod(getString(element, "schedulingPeriod"));
     	dto.setState(getString(element, "scheduledState"));

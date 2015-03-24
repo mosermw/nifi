@@ -104,3 +104,13 @@ input.reporting-task-scheduling-period {
     font-size: 11px !important;
     width: 150px;
 }
+
+/*
+    Comments
+*/
+
+#reporting-task-comments {
+    height: 250px;
+    width: 748px !important;
+    margin-top: 10px;
+}
