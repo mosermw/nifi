@@ -58,7 +58,7 @@
         <title>Update Attribute</title>
     </head>
     <body>
-        <div id="attribute-updater-processor-id" class="hidden">${param.processorId}</div>
+        <div id="attribute-updater-processor-id" class="hidden">${param.id}</div>
         <div id="attribute-updater-client-id" class="hidden">${param.clientId}</div>
         <div id="attribute-updater-revision" class="hidden">${param.revision}</div>
         <div id="attribute-updater-editable" class="hidden">${param.editable}</div>
