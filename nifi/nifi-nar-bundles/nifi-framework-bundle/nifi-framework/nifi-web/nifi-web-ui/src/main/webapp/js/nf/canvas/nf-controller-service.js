@@ -1356,6 +1356,9 @@ nf.ControllerService = (function () {
                                     nf.CustomUi.showCustomUi($('#controller-service-id').text(), controllerService.customUiUrl, true).done(function () {
                                         // once the custom ui is closed, reload the controller service
                                         reloadControllerService(controllerService);
+                                        
+                                        // show the settings
+                                        nf.Settings.showSettings();
                                     });
                                 };
 
@@ -1505,7 +1508,9 @@ nf.ControllerService = (function () {
                                 controllerServiceDialog.modal('hide');
 
                                 // show the custom ui
-                                nf.CustomUi.showCustomUi(controllerService.id, controllerService.customUiUrl, false);
+                                nf.CustomUi.showCustomUi(controllerService.id, controllerService.customUiUrl, false).done(function () {
+                                    nf.Settings.showSettings();
+                                });
                             }
                         }
                     });

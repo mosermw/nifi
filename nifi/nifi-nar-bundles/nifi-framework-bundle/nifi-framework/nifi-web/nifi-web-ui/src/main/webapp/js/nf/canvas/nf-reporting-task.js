@@ -469,6 +469,9 @@ nf.ReportingTask = (function () {
                                     nf.CustomUi.showCustomUi($('#reporting-task-id').text(), reportingTask.customUiUrl, true).done(function () {
                                         // once the custom ui is closed, reload the reporting task
                                         reloadReportingTask(reportingTask);
+                                        
+                                        // show the settings
+                                        nf.Settings.showSettings();
                                     });
                                 };
 
@@ -616,7 +619,9 @@ nf.ReportingTask = (function () {
                                 reportingTaskDialog.modal('hide');
 
                                 // show the custom ui
-                                nf.CustomUi.showCustomUi(reportingTask.id, reportingTask.customUiUrl, false);
+                                nf.CustomUi.showCustomUi(reportingTask.id, reportingTask.customUiUrl, false).done(function() {
+                                    nf.Settings.showSettings();
+                                });
                             }
                         }
                     });
