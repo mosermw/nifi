@@ -458,7 +458,7 @@ nf.ReportingTask = (function () {
                                     $('#shell-close-button').click();
 
                                     // show the custom ui
-                                    nf.CustomProcessorUi.showCustomUi($('#reporting-task-id').text(), reportingTask.customUiUrl, true).done(function () {
+                                    nf.CustomUi.showCustomUi($('#reporting-task-id').text(), reportingTask.customUiUrl, true).done(function () {
                                         // once the custom ui is closed, reload the reporting task
                                         reloadReportingTask(reportingTask);
                                     });
@@ -598,7 +598,7 @@ nf.ReportingTask = (function () {
                     }];
 
                 // determine if we should show the advanced button
-                if (nf.Common.isDefinedAndNotNull(nf.CustomProcessorUi) && nf.Common.isDefinedAndNotNull(reportingTask.customUiUrl) && reportingTask.customUiUrl !== '') {
+                if (nf.Common.isDefinedAndNotNull(nf.CustomUi) && nf.Common.isDefinedAndNotNull(reportingTask.customUiUrl) && reportingTask.customUiUrl !== '') {
                     buttons.push({
                         buttonText: 'Advanced',
                         handler: {
@@ -607,7 +607,7 @@ nf.ReportingTask = (function () {
                                 reportingTaskDialog.modal('hide');
 
                                 // show the custom ui
-                                nf.CustomProcessorUi.showCustomUi(reportingTask.id, reportingTask.customUiUrl, false);
+                                nf.CustomUi.showCustomUi(reportingTask.id, reportingTask.customUiUrl, false);
                             }
                         }
                     });

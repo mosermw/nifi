@@ -673,7 +673,7 @@ nf.ProcessorConfiguration = (function () {
                                         $('#processor-configuration').modal('hide');
 
                                         // show the custom ui
-                                        nf.CustomProcessorUi.showCustomUi($('#processor-id').text(), processor.config.customUiUrl, true).done(function () {
+                                        nf.CustomUi.showCustomUi($('#processor-id').text(), processor.config.customUiUrl, true).done(function () {
                                             // once the custom ui is closed, reload the processor
                                             nf.Processor.reload(processor);
 

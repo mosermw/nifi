@@ -226,7 +226,7 @@ nf.ProcessorDetails = (function () {
                     }];
 
                 // determine if we should show the advanced button
-                if (nf.Common.isDefinedAndNotNull(nf.CustomProcessorUi) && nf.Common.isDefinedAndNotNull(processor.config.customUiUrl) && processor.config.customUiUrl !== '') {
+                if (nf.Common.isDefinedAndNotNull(nf.CustomUi) && nf.Common.isDefinedAndNotNull(processor.config.customUiUrl) && processor.config.customUiUrl !== '') {
                     buttons.push({
                         buttonText: 'Advanced',
                         handler: {
@@ -235,7 +235,7 @@ nf.ProcessorDetails = (function () {
                                 $('#processor-details').modal('hide');
 
                                 // show the custom ui
-                                nf.CustomProcessorUi.showCustomUi(processor.id, processor.config.customUiUrl, false);
+                                nf.CustomUi.showCustomUi(processor.id, processor.config.customUiUrl, false);
                             }
                         }
                     });

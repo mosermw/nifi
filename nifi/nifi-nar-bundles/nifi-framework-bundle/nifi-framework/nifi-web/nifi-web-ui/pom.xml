@@ -265,7 +265,7 @@
                                                 <include>${staging.dir}/js/nf/canvas/nf-storage.js</include>
                                                 <include>${staging.dir}/js/nf/canvas/nf-snippet.js</include>
                                                 <include>${staging.dir}/js/nf/canvas/nf-canvas-toolbox.js</include>
-                                                <include>${staging.dir}/js/nf/canvas/nf-custom-processor-ui.js</include>
+                                                <include>${staging.dir}/js/nf/canvas/nf-custom-ui.js</include>
                                                 <include>${staging.dir}/js/nf/canvas/nf-registration.js</include>
                                                 <include>${staging.dir}/js/nf/canvas/nf-controller-service.js</include>
                                                 <include>${staging.dir}/js/nf/canvas/nf-reporting-task.js</include>

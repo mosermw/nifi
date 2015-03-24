@@ -1353,7 +1353,7 @@ nf.ControllerService = (function () {
                                     $('#shell-close-button').click();
                     
                                     // show the custom ui
-                                    nf.CustomProcessorUi.showCustomUi($('#controller-service-id').text(), controllerService.customUiUrl, true).done(function () {
+                                    nf.CustomUi.showCustomUi($('#controller-service-id').text(), controllerService.customUiUrl, true).done(function () {
                                         // once the custom ui is closed, reload the controller service
                                         reloadControllerService(controllerService);
                                     });
@@ -1496,7 +1496,7 @@ nf.ControllerService = (function () {
                     }];
 
                 // determine if we should show the advanced button
-                if (nf.Common.isDefinedAndNotNull(nf.CustomProcessorUi) && nf.Common.isDefinedAndNotNull(controllerService.customUiUrl) && controllerService.customUiUrl !== '') {
+                if (nf.Common.isDefinedAndNotNull(nf.CustomUi) && nf.Common.isDefinedAndNotNull(controllerService.customUiUrl) && controllerService.customUiUrl !== '') {
                     buttons.push({
                         buttonText: 'Advanced',
                         handler: {
@@ -1505,7 +1505,7 @@ nf.ControllerService = (function () {
                                 controllerServiceDialog.modal('hide');
 
                                 // show the custom ui
-                                nf.CustomProcessorUi.showCustomUi(controllerService.id, controllerService.customUiUrl, false);
+                                nf.CustomUi.showCustomUi(controllerService.id, controllerService.customUiUrl, false);
                             }
                         }
                     });

@@ -847,6 +847,7 @@ public final class DtoFactory {
         dto.setSchedulingPeriod(reportingTaskNode.getSchedulingPeriod());
         dto.setState(reportingTaskNode.getScheduledState().name());
         dto.setActiveThreadCount(reportingTaskNode.getActiveThreadCount());
+        dto.setAnnotationData(reportingTaskNode.getAnnotationData());
 //        dto.setComments(reportingTaskNode.getComments());
 
         final Map<String, String> defaultSchedulingPeriod = new HashMap<>();
@@ -913,6 +914,7 @@ public final class DtoFactory {
         dto.setName(controllerServiceNode.getName());
         dto.setType(controllerServiceNode.getControllerServiceImplementation().getClass().getName());
         dto.setState(controllerServiceNode.getState().name());
+        dto.setAnnotationData(controllerServiceNode.getAnnotationData());
         dto.setComments(controllerServiceNode.getComments());
         
         // sort a copy of the properties

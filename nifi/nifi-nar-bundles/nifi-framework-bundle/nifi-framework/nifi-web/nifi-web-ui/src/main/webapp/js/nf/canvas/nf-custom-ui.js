@@ -17,15 +17,15 @@
 
 /* global nf */
 
-nf.CustomProcessorUi = {
+nf.CustomUi = {
     /**
      * Shows the custom ui.
      * 
-     * @argument {string} processorId       The processor id
+     * @argument {string} id       The component id
      * @argument {string} uri               The uri for the custom ui
      * @argument {boolean} editable         Whether the custom ui should support editing
      */
-    showCustomUi: function (processorId, uri, editable) {
+    showCustomUi: function (id, uri, editable) {
 
         // record the processor id
         $('#shell-close-button');
@@ -34,7 +34,8 @@ nf.CustomProcessorUi = {
 
         // build the customer ui params
         var customUiParams = {
-            'processorId': processorId,
+            'id': id,
+            'processorId': id,                  // deprecated
             'revision': revision.version,
             'clientId': revision.clientId,
             'editable': editable
