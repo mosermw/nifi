@@ -293,7 +293,10 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
                 checkResponse(nodeResponse, id);
 
                 // return processor
-                final ProcessorEntity entity = nodeResponse.getClientResponse().getEntity(ProcessorEntity.class);
+                ProcessorEntity entity = (ProcessorEntity) nodeResponse.getUpdatedEntity();
+                if (entity == null) {
+                    entity = nodeResponse.getClientResponse().getEntity(ProcessorEntity.class);
+                }
                 processor = entity.getProcessor();
             } else {
                 processor = serviceFacade.getProcessor(id);
@@ -349,7 +352,10 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
                 checkResponse(nodeResponse, id);
                 
                 // return processor
-                final ProcessorEntity entity = nodeResponse.getClientResponse().getEntity(ProcessorEntity.class);
+                ProcessorEntity entity = (ProcessorEntity) nodeResponse.getUpdatedEntity();
+                if (entity == null) {
+                    entity = nodeResponse.getClientResponse().getEntity(ProcessorEntity.class);
+                }
                 processor = entity.getProcessor();
             } else {
                 final ConfigurationSnapshot<ProcessorDTO> response = serviceFacade.setProcessorAnnotationData(revision, id, annotationData);
@@ -406,7 +412,10 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
                 checkResponse(nodeResponse, id);
 
                 // return controller service
-                final ControllerServiceEntity entity = nodeResponse.getClientResponse().getEntity(ControllerServiceEntity.class);
+                ControllerServiceEntity entity = (ControllerServiceEntity) nodeResponse.getUpdatedEntity();
+                if (entity == null) {
+                    entity = nodeResponse.getClientResponse().getEntity(ControllerServiceEntity.class);
+                }
                 controllerService = entity.getControllerService();
             }
 
@@ -462,8 +471,11 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
                 // check for issues replicating request
                 checkResponse(nodeResponse, id);
                 
-                // return processor
-                final ControllerServiceEntity entity = nodeResponse.getClientResponse().getEntity(ControllerServiceEntity.class);
+                // return controller service
+                ControllerServiceEntity entity = (ControllerServiceEntity) nodeResponse.getUpdatedEntity();
+                if (entity == null) {
+                    entity = nodeResponse.getClientResponse().getEntity(ControllerServiceEntity.class);
+                }
                 controllerService = entity.getControllerService();
             }
             
@@ -515,8 +527,11 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
                 // check for issues replicating request
                 checkResponse(nodeResponse, id);
 
-                // return processor
-                final ReportingTaskEntity entity = nodeResponse.getClientResponse().getEntity(ReportingTaskEntity.class);
+                // return reporting task
+                ReportingTaskEntity entity = (ReportingTaskEntity) nodeResponse.getUpdatedEntity();
+                if (entity == null) {
+                    entity = nodeResponse.getClientResponse().getEntity(ReportingTaskEntity.class);
+                }
                 reportingTask = entity.getReportingTask();
             }
 
@@ -573,7 +588,10 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
                 checkResponse(nodeResponse, id);
                 
                 // return reporting task
-                final ReportingTaskEntity entity = nodeResponse.getClientResponse().getEntity(ReportingTaskEntity.class);
+                ReportingTaskEntity entity = (ReportingTaskEntity) nodeResponse.getUpdatedEntity();
+                if (entity == null) {
+                    entity = nodeResponse.getClientResponse().getEntity(ReportingTaskEntity.class);
+                }
                 reportingTask = entity.getReportingTask();
             }
             
