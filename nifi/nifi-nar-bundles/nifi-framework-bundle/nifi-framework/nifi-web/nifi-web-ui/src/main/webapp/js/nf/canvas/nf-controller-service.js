@@ -354,13 +354,13 @@ nf.ControllerService = (function () {
                 var processorType = $('<span class="referencing-component-type"></span>').text(nf.Common.substringAfterLast(referencingComponent.type, '.'));
                 
                 // active thread count
-                var activeThreadCount = $('<span class="referencing-component-active-thread-count"></span>').addClass(referencingComponent.id + '-active-threads');
+                var processorActiveThreadCount = $('<span class="referencing-component-active-thread-count"></span>').addClass(referencingComponent.id + '-active-threads');
                 if (nf.Common.isDefinedAndNotNull(referencingComponent.activeThreadCount) && referencingComponent.activeThreadCount > 0) {
-                    activeThreadCount.text('(' + referencingComponent.activeThreadCount + ')');
+                    processorActiveThreadCount.text('(' + referencingComponent.activeThreadCount + ')');
                 }
                 
                 // processor
-                var processorItem = $('<li></li>').append(processorState).append(processorLink).append(processorType).append(activeThreadCount);
+                var processorItem = $('<li></li>').append(processorState).append(processorLink).append(processorType).append(processorActiveThreadCount);
                 processors.append(processorItem);
             } else if (referencingComponent.referenceType === 'ControllerService') {
                 var serviceLink = $('<span class="referencing-component-name link"></span>').text(referencingComponent.name).on('click', function () {
@@ -408,12 +408,34 @@ nf.ControllerService = (function () {
                 
                 services.append(serviceItem);
             } else if (referencingComponent.referenceType === 'ReportingTask') {
-                var taskItem = $('<li></li>').text(referencingComponent.name).on('click', function () {
+                var reportingTaskLink = $('<li></li>').text(referencingComponent.name).on('click', function () {
+                    var reportingTaskGrid = $('#reporting-tasks-table').data('gridInstance');
+                    var reportingTaskData = reportingTaskGrid.getData();
+                    
+                    // select the selected row
+                    var row = reportingTaskData.getRowById(referencingComponent.id);
+                    reportingTaskGrid.setSelectedRows([row]);
                     
                     // close the dialog and shell
-                    $('#controller-service-configuration').modal('hide');
+                    referenceContainer.closest('.dialog').modal('hide');
                 });
-                tasks.append(taskItem);
+                
+                // state
+                var reportingTaskState = $('<div class="referencing-component-state"></div>').addClass(referencingComponent.id + '-state');
+                updateReferencingSchedulableComponentState(reportingTaskState, referencingComponent);
+                
+                // type
+                var reportingTaskType = $('<span class="referencing-component-type"></span>').text(nf.Common.substringAfterLast(referencingComponent.type, '.'));
+                
+                // active thread count
+                var reportingTaskActiveThreadCount = $('<span class="referencing-component-active-thread-count"></span>').addClass(referencingComponent.id + '-active-threads');
+                if (nf.Common.isDefinedAndNotNull(referencingComponent.activeThreadCount) && referencingComponent.activeThreadCount > 0) {
+                    reportingTaskActiveThreadCount.text('(' + referencingComponent.activeThreadCount + ')');
+                }
+                
+                // reporting task
+                var reportingTaskItem = $('<li></li>').append(reportingTaskState).append(reportingTaskLink).append(reportingTaskType).append(reportingTaskActiveThreadCount);
+                tasks.append(reportingTaskItem);
             }
         });
         
