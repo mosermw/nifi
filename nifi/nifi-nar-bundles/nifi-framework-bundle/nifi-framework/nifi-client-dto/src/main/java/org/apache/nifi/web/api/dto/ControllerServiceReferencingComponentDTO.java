@@ -17,6 +17,7 @@
 package org.apache.nifi.web.api.dto;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import javax.xml.bind.annotation.XmlType;
 
@@ -33,6 +34,9 @@ public class ControllerServiceReferencingComponentDTO {
     private String type;
     private String state;
 
+    private Map<String, String> properties;
+    private Map<String, PropertyDescriptorDTO> descriptors;
+    
     private Collection<String> validationErrors;
     
     private String referenceType;
@@ -120,6 +124,32 @@ public class ControllerServiceReferencingComponentDTO {
         this.referenceType = referenceType;
     }
 
+    /**
+     * The component properties.
+     * 
+     * @return 
+     */
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
+    }
+
+    /**
+     * The descriptors for the components properties.
+     * 
+     * @return 
+     */
+    public Map<String, PropertyDescriptorDTO> getDescriptors() {
+        return descriptors;
+    }
+
+    public void setDescriptors(Map<String, PropertyDescriptorDTO> descriptors) {
+        this.descriptors = descriptors;
+    }
+    
     /**
      * Any validation error associated with this component.
      * 
