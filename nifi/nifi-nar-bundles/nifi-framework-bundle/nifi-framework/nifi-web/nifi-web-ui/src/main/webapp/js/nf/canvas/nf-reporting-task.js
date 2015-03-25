@@ -169,21 +169,6 @@ nf.ReportingTask = (function () {
     };
     
     /**
-     * Reloads the specified reporting task.
-     * 
-     * @param {object} reportingTask
-     */
-    var reloadReportingTask = function (reportingTask) {
-        return $.ajax({
-            type: 'GET',
-            url: reportingTask.uri,
-            dataType: 'json'
-        }).done(function (response) {
-            renderReportingTask(response.reportingTask);
-        }).fail(nf.Common.handleAjaxError);
-    };
-    
-    /**
      * Renders the specified reporting task.
      * 
      * @param {object} reportingTask
@@ -468,7 +453,7 @@ nf.ReportingTask = (function () {
                                     // show the custom ui
                                     nf.CustomUi.showCustomUi($('#reporting-task-id').text(), reportingTask.customUiUrl, true).done(function () {
                                         // once the custom ui is closed, reload the reporting task
-                                        reloadReportingTask(reportingTask);
+                                        nf.ReportingTask.reload(reportingTask.id);
                                         
                                         // show the settings
                                         nf.Settings.showSettings();
@@ -654,6 +639,25 @@ nf.ReportingTask = (function () {
          */
         stop: function(reportingTask) {
             setRunning(reportingTask, false);
+        },
+        
+        /**
+         * Reloads the specified reporting task.
+         * 
+         * @param {string} id
+         */
+        reload: function (id) {
+            var reportingTaskGrid = $('#reporting-tasks-table').data('gridInstance');
+            var reportingTaskData = reportingTaskGrid.getData();
+            var reportingTask = reportingTaskData.getItemById(id);
+        
+            return $.ajax({
+                type: 'GET',
+                url: reportingTask.uri,
+                dataType: 'json'
+            }).done(function (response) {
+                renderReportingTask(response.reportingTask);
+            }).fail(nf.Common.handleAjaxError);
         },
         
         /**

@@ -985,7 +985,8 @@ public final class DtoFactory {
             final ControllerServiceReferencingComponentDTO dto = new ControllerServiceReferencingComponentDTO();
             dto.setId(component.getIdentifier());
             dto.setName(component.getName());
-
+            
+            List<PropertyDescriptor> propertyDescriptors = null;
             Collection<ValidationResult> validationErrors = null;
             if (component instanceof ProcessorNode) {
                 final ProcessorNode node = ((ProcessorNode) component);
@@ -995,6 +996,7 @@ public final class DtoFactory {
                 dto.setType(node.getProcessor().getClass().getName());
                 dto.setReferenceType(Processor.class.getSimpleName());
                 
+                propertyDescriptors = node.getProcessor().getPropertyDescriptors();
                 validationErrors = node.getValidationErrors();
             } else if (component instanceof ControllerServiceNode) {
                 final ControllerServiceNode node = ((ControllerServiceNode) component);
@@ -1008,6 +1010,7 @@ public final class DtoFactory {
                     dto.setReferencingComponents(createControllerServiceReferencingComponentsDto(node.getReferences(), visited));
                 }
                 
+                propertyDescriptors = node.getControllerServiceImplementation().getPropertyDescriptors();
                 validationErrors = node.getValidationErrors();
             } else if (component instanceof ReportingTask) {
                 final ReportingTaskNode node = ((ReportingTaskNode) component);
@@ -1016,7 +1019,43 @@ public final class DtoFactory {
                 dto.setType(node.getReportingTask().getClass().getName());
                 dto.setReferenceType(ReportingTask.class.getSimpleName());
                 
+                propertyDescriptors = node.getReportingTask().getPropertyDescriptors();
                 validationErrors = node.getValidationErrors();
+            }
+            
+            if (propertyDescriptors != null && !propertyDescriptors.isEmpty()) {
+                final Map<PropertyDescriptor, String> sortedProperties = new TreeMap<>(new Comparator<PropertyDescriptor>() {
+                    @Override
+                    public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
+                        return Collator.getInstance(Locale.US).compare(o1.getName(), o2.getName());
+                    }
+                });
+                sortedProperties.putAll(component.getProperties());
+
+                final Map<PropertyDescriptor, String> orderedProperties = new LinkedHashMap<>();
+                for (PropertyDescriptor descriptor : propertyDescriptors) {
+                    orderedProperties.put(descriptor, null);
+                }
+                orderedProperties.putAll(sortedProperties);
+
+                // build the descriptor and property dtos
+                dto.setDescriptors(new LinkedHashMap<String, PropertyDescriptorDTO>());
+                dto.setProperties(new LinkedHashMap<String, String>());
+                for (final Map.Entry<PropertyDescriptor, String> entry : orderedProperties.entrySet()) {
+                    final PropertyDescriptor descriptor = entry.getKey();
+
+                    // store the property descriptor
+                    dto.getDescriptors().put(descriptor.getName(), createPropertyDescriptorDto(descriptor));
+
+                    // determine the property value - don't include sensitive properties
+                    String propertyValue = entry.getValue();
+                    if (propertyValue != null && descriptor.isSensitive()) {
+                        propertyValue = "********";
+                    }
+
+                    // set the property value
+                    dto.getProperties().put(descriptor.getName(), propertyValue);
+                }
             }
             
             if (validationErrors != null && !validationErrors.isEmpty()) {

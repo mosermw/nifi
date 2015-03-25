@@ -143,6 +143,7 @@ span.service.expansion-button {
 }
 
 span.referencing-component-active-thread-count {
+    margin-left: 5px;
 }
 
 span.referencing-component-name {
