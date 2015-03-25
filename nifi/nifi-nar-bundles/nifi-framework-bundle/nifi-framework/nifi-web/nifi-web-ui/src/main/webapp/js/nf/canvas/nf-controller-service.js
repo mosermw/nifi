@@ -124,11 +124,17 @@ nf.ControllerService = (function () {
     };
     
     /**
-     * Reloads the specified controller service.
+     * Reloads the specified controller service. It's referencing and referenced
+     * components are NOT reloaded.
      * 
-     * @param {object} controllerService
+     * @param {string} id
      */
-    var reloadControllerService = function (controllerService) {
+    var reloadControllerService = function (id) {
+        // get the table and update the row accordingly
+        var controllerServiceGrid = $('#controller-services-table').data('gridInstance');
+        var controllerServiceData = controllerServiceGrid.getData();
+        var controllerService = controllerServiceData.getItemById(id);
+        
         return $.ajax({
             type: 'GET',
             url: controllerService.uri,
@@ -148,9 +154,18 @@ nf.ControllerService = (function () {
         var controllerServiceGrid = $('#controller-services-table').data('gridInstance');
         var controllerServiceData = controllerServiceGrid.getData();
         controllerServiceData.updateItem(controllerService.id, controllerService);
-
-        // reload the controller service referencing components
-        reloadControllerServiceReferences(controllerService);
+    };
+    
+    /**
+     * Reloads the specified controller services and all of its referencing 
+     * and referenced components.
+     * 
+     * @param {type} controllerService
+     */
+    var reloadControllerServiceAndReferencingComponents = function (controllerService) {
+        reloadControllerService(controllerService.id).done(function(response) {
+            reloadControllerServiceReferences(response.controllerService);
+        });
     };
     
     /**
@@ -160,8 +175,6 @@ nf.ControllerService = (function () {
      * @param {object} controllerService
      */
     var reloadControllerServiceReferences = function (controllerService) {
-        var reloadOther = false;
-
         // reload all dependent processors if they are currently visible
         $.each(controllerService.referencingComponents, function (_, reference) {
             if (reference.referenceType === 'Processor') {
@@ -171,13 +184,20 @@ nf.ControllerService = (function () {
                     nf.Processor.reload(processor.component);
                 }
                 
+                // update the current active thread count
+                $('div.' + reference.id + '-active-threads').text(reference.activeThreadCount);
+                
                 // update the current state of this processor
                 var referencingComponentState = $('div.' + reference.id + '-state');
                 if (referencingComponentState.length) {
                     updateReferencingSchedulableComponentState(referencingComponentState, reference);
                 }
             } else if (reference.referenceType === 'ReportingTask') {
-                reloadOther = true;
+                // reload the referencing reporting tasks
+                nf.ReportingTask.reload(reference.id);
+                
+                // update the current active thread count
+                $('div.' + reference.id + '-active-threads').text(reference.activeThreadCount);
                 
                 // update the current state of this reporting task
                 var referencingComponentState = $('div.' + reference.id + '-state');
@@ -185,30 +205,30 @@ nf.ControllerService = (function () {
                     updateReferencingSchedulableComponentState(referencingComponentState, reference);
                 }
             } else {
-                reloadOther = true;
+                // reload the referencing services
+                reloadControllerService(reference.id);
                 
                 // update the current state of this service
                 var referencingComponentState = $('div.' + reference.id + '-state');
                 if (referencingComponentState.length) {
                     updateReferencingServiceState(referencingComponentState, reference);
                 }
+                
+                // consider it's referencing components if appropriate
+                if (reference.referenceCycle === false) {
+                    reloadControllerServiceReferences(reference);
+                }
             }
         });
 
         // see if this controller service references another controller service
-        if (reloadOther === false) {
-            $.each(controllerService.descriptors, function(_, descriptor) {
-                if (descriptor.identifiesControllerService === true) {
-                    reloadOther = true;
-                    return false;
-                }
-            });
-        }
-
-        // reload the controller services and reporting tasks if necessary
-        if (reloadOther) {
-            nf.Settings.loadSettings();
-        }
+        // in order to update the referenced service referencing components
+        $.each(controllerService.descriptors, function(_, descriptor) {
+            if (descriptor.identifiesControllerService === true) {
+                var referencedServiceId = controllerService.properties[descriptor.name];
+                reloadControllerService(referencedServiceId);
+            }
+        });
     };   
     
     /**
@@ -326,12 +346,6 @@ nf.ControllerService = (function () {
                     $('#shell-close-button').click();
                 });
 
-                // active thread count
-                var activeThreadCount = $('<span class="referencing-component-active-thread-count"></span>').addClass(referencingComponent.id + '-active-threads');
-                if (nf.Common.isDefinedAndNotNull(referencingComponent.activeThreadCount) && referencingComponent.activeThreadCount > 0) {
-                    activeThreadCount.text('(' + referencingComponent.activeThreadCount + ')');
-                }
-                
                 // state
                 var processorState = $('<div class="referencing-component-state"></div>').addClass(referencingComponent.id + '-state');
                 updateReferencingSchedulableComponentState(processorState, referencingComponent);
@@ -339,8 +353,14 @@ nf.ControllerService = (function () {
                 // type
                 var processorType = $('<span class="referencing-component-type"></span>').text(nf.Common.substringAfterLast(referencingComponent.type, '.'));
                 
+                // active thread count
+                var activeThreadCount = $('<span class="referencing-component-active-thread-count"></span>').addClass(referencingComponent.id + '-active-threads');
+                if (nf.Common.isDefinedAndNotNull(referencingComponent.activeThreadCount) && referencingComponent.activeThreadCount > 0) {
+                    activeThreadCount.text('(' + referencingComponent.activeThreadCount + ')');
+                }
+                
                 // processor
-                var processorItem = $('<li></li>').append(processorState).append(activeThreadCount).append(processorLink).append(processorType);
+                var processorItem = $('<li></li>').append(processorState).append(processorLink).append(processorType).append(activeThreadCount);
                 processors.append(processorItem);
             } else if (referencingComponent.referenceType === 'ControllerService') {
                 var serviceLink = $('<span class="referencing-component-name link"></span>').text(referencingComponent.name).on('click', function () {
@@ -536,9 +556,6 @@ nf.ControllerService = (function () {
                 // if we're just starting schedulable components we're done when the update is finished
                 if (running) {
                     deferred.resolve();
-                    
-                    // reload the controller service
-                    reloadControllerServiceReferences(controllerService);
                 } else {
                     // identify all referencing services
                     var services = getReferencingControllerServiceIds(controllerService);
@@ -900,7 +917,7 @@ nf.ControllerService = (function () {
                 disableReferencingSchedulable.removeClass('ajax-loading').addClass('ajax-error');
             });
         }).always(function () {
-            reloadControllerService(controllerService);
+            reloadControllerServiceAndReferencingComponents(controllerService);
             setCloseButton();
         });
     };
@@ -1001,7 +1018,7 @@ nf.ControllerService = (function () {
                 });
             }
         }).always(function () {
-            reloadControllerService(controllerService);
+            reloadControllerServiceAndReferencingComponents(controllerService);
             setCloseButton();
         });
     };
@@ -1355,7 +1372,7 @@ nf.ControllerService = (function () {
                                     // show the custom ui
                                     nf.CustomUi.showCustomUi($('#controller-service-id').text(), controllerService.customUiUrl, true).done(function () {
                                         // once the custom ui is closed, reload the controller service
-                                        reloadControllerService(controllerService);
+                                        reloadControllerServiceAndReferencingComponents(controllerService);
                                         
                                         // show the settings
                                         nf.Settings.showSettings();
@@ -1538,7 +1555,7 @@ nf.ControllerService = (function () {
         enable: function(controllerService) {
             if (nf.Common.isEmpty(controllerService.referencingComponents)) {
                 setEnabled(controllerService, true).always(function () {
-                    reloadControllerService(controllerService);
+                    reloadControllerServiceAndReferencingComponents(controllerService);
                 });
             } else {
                 showEnableControllerServiceDialog(controllerService);
@@ -1553,7 +1570,7 @@ nf.ControllerService = (function () {
         disable: function(controllerService) {
             if (nf.Common.isEmpty(controllerService.referencingComponents)) {
                 setEnabled(controllerService, false).always(function () {
-                    reloadControllerService(controllerService);
+                    reloadControllerServiceAndReferencingComponents(controllerService);
                 });
             } else {
                 showDisableControllerServiceDialog(controllerService);
