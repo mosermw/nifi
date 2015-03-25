@@ -393,6 +393,12 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
             if (controllerServiceLookup.getControllerService(id) != null) {
                 controllerService = serviceFacade.getControllerService(id);
             } else {
+                // if this is a standalone instance the service should have been found above... there should
+                // no cluster to replicate the request to
+                if (!properties.isClusterManager()) {
+                    throw new ResourceNotFoundException(String.format("Controller service[%s] could not be found on this NiFi.", id));
+                }
+                
                 // create the request URL
                 URI requestUrl;
                 try {
@@ -437,6 +443,18 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
                 final ConfigurationSnapshot<ControllerServiceDTO> response = serviceFacade.updateControllerService(revision, controllerServiceDto);
                 controllerService = response.getConfiguration();
             } else {
+                // if this is a standalone instance the service should have been found above... there should
+                // no cluster to replicate the request to
+                if (!properties.isClusterManager()) {
+                    throw new ResourceNotFoundException(String.format("Controller service[%s] could not be found on this NiFi.", id));
+                }
+                
+                // since this PUT request can be interpreted as a request to create a controller service
+                // we need to be sure that this service exists on the node before the request is replicated.
+                // this is done by attempting to get the details. if the service doesn't exist it will
+                // throw a ResourceNotFoundException
+                getComponentDetails(requestContext);
+                
                 // create the request URL
                 URI requestUrl;
                 try {
@@ -509,6 +527,12 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
             if (reportingTaskProvider.getReportingTaskNode(id) != null) {
                 reportingTask = serviceFacade.getReportingTask(id);
             } else {
+                // if this is a standalone instance the task should have been found above... there should
+                // no cluster to replicate the request to
+                if (!properties.isClusterManager()) {
+                    throw new ResourceNotFoundException(String.format("Reporting task[%s] could not be found on this NiFi.", id));
+                }
+                
                 // create the request URL
                 URI requestUrl;
                 try {
@@ -553,6 +577,18 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
                 final ConfigurationSnapshot<ReportingTaskDTO> response = serviceFacade.updateReportingTask(revision, reportingTaskDto);
                 reportingTask = response.getConfiguration();
             } else {
+                // if this is a standalone instance the task should have been found above... there should
+                // no cluster to replicate the request to
+                if (!properties.isClusterManager()) {
+                    throw new ResourceNotFoundException(String.format("Reporting task[%s] could not be found on this NiFi.", id));
+                }
+                
+                // since this PUT request can be interpreted as a request to create a reporting task
+                // we need to be sure that this task exists on the node before the request is replicated.
+                // this is done by attempting to get the details. if the service doesn't exist it will
+                // throw a ResourceNotFoundException
+                getComponentDetails(requestContext);
+                
                 // create the request URL
                 URI requestUrl;
                 try {
