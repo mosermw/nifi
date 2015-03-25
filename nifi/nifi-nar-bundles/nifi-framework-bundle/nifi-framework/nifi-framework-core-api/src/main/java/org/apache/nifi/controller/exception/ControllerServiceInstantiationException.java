@@ -16,28 +16,28 @@
  */
 package org.apache.nifi.controller.exception;
 
-public class ControllerServiceNotFoundException extends RuntimeException {
+public class ControllerServiceInstantiationException extends RuntimeException {
 
     private static final long serialVersionUID = -544424320587059277L;
 
     /**
      * Constructs a default exception
      */
-    public ControllerServiceNotFoundException() {
+    public ControllerServiceInstantiationException() {
         super();
     }
 
     /**
      * @param message
      */
-    public ControllerServiceNotFoundException(String message) {
+    public ControllerServiceInstantiationException(String message) {
         super(message);
     }
 
     /**
      * @param cause
      */
-    public ControllerServiceNotFoundException(Throwable cause) {
+    public ControllerServiceInstantiationException(Throwable cause) {
         super(cause);
     }
 
@@ -45,7 +45,7 @@ public class ControllerServiceNotFoundException extends RuntimeException {
      * @param message
      * @param cause
      */
-    public ControllerServiceNotFoundException(String message, Throwable cause) {
+    public ControllerServiceInstantiationException(String message, Throwable cause) {
         super(message, cause);
     }
 }

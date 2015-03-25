@@ -46,7 +46,7 @@ import org.apache.nifi.controller.ProcessorNode;
 import org.apache.nifi.controller.ReportingTaskNode;
 import org.apache.nifi.controller.ScheduledState;
 import org.apache.nifi.controller.ValidationContextFactory;
-import org.apache.nifi.controller.exception.ControllerServiceNotFoundException;
+import org.apache.nifi.controller.exception.ControllerServiceInstantiationException;
 import org.apache.nifi.controller.exception.ProcessorLifeCycleException;
 import org.apache.nifi.events.BulletinFactory;
 import org.apache.nifi.logging.ComponentLog;
@@ -187,7 +187,7 @@ public class StandardControllerServiceProvider implements ControllerServiceProvi
             this.controllerServices.put(id, serviceNode);
             return serviceNode;
         } catch (final Throwable t) {
-            throw new ControllerServiceNotFoundException(t);
+            throw new ControllerServiceInstantiationException(t);
         } finally {
             if (currentContextClassLoader != null) {
                 Thread.currentThread().setContextClassLoader(currentContextClassLoader);
