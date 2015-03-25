@@ -61,6 +61,11 @@ public class StandardControllerServiceDAO extends ComponentDAO implements Contro
      */
     @Override
     public ControllerServiceNode createControllerService(final ControllerServiceDTO controllerServiceDTO) {
+        // ensure the type is specified
+        if (controllerServiceDTO.getType() == null) {
+            throw new IllegalArgumentException("The controller service type must be specified.");
+        }
+        
         // create the controller service
         final ControllerServiceNode controllerService = serviceProvider.createControllerService(controllerServiceDTO.getType(), controllerServiceDTO.getId(), true);
         

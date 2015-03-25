@@ -69,6 +69,11 @@ public class StandardReportingTaskDAO extends ComponentDAO implements ReportingT
      */
     @Override
     public ReportingTaskNode createReportingTask(final ReportingTaskDTO reportingTaskDTO) {
+        // ensure the type is specified
+        if (reportingTaskDTO.getType() == null) {
+            throw new IllegalArgumentException("The reporting task type must be specified.");
+        }
+        
         try {
             // create the reporting task
             final ReportingTaskNode reportingTask = reportingTaskProvider.createReportingTask(reportingTaskDTO.getType(), reportingTaskDTO.getId(), true);
