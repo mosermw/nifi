@@ -314,6 +314,7 @@ public class StandardReportingTaskDAO extends ComponentDAO implements ReportingT
         final String schedulingStrategy = reportingTaskDTO.getSchedulingStrategy();
         final String schedulingPeriod = reportingTaskDTO.getSchedulingPeriod();
         final String annotationData = reportingTaskDTO.getAnnotationData();
+        final String comments = reportingTaskDTO.getComments();
         final Map<String, String> properties = reportingTaskDTO.getProperties();
 
         // ensure scheduling strategy is set first
@@ -329,6 +330,9 @@ public class StandardReportingTaskDAO extends ComponentDAO implements ReportingT
         }
         if (isNotNull(annotationData)) {
             reportingTask.setAnnotationData(annotationData);
+        }
+        if (isNotNull(comments)) {
+            reportingTask.setComments(comments);
         }
         if (isNotNull(properties)) {
             for (final Map.Entry<String, String> entry : properties.entrySet()) {
