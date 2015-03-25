@@ -1658,6 +1658,7 @@ nf.Settings = (function () {
             initControllerServices();
             initReportingTasks();
         },
+        
         /**
          * Update the size of the grid based on its container's current size.
          */
@@ -1672,18 +1673,21 @@ nf.Settings = (function () {
                 reportingTasksGrid.resizeCanvas();
             }
         },
+        
         /**
          * Shows the settings dialog.
          */
         showSettings: function () {
-            return nf.Settings.loadSettings().done(function () {
-                // show the settings dialog
-                nf.Shell.showContent('#settings').done(function () {
-                    // reset button state
-                    $('#settings-save').mouseout();
-                });
+            // show the settings dialog
+            nf.Shell.showContent('#settings').done(function () {
+                // reset button state
+                $('#settings-save').mouseout();
             });
+            
+            // adjust the table size
+            nf.Settings.resetTableSize();
         },
+        
         /**
          * Loads the settings.
          */

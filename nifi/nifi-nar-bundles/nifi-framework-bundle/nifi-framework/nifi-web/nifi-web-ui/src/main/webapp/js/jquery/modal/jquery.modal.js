@@ -226,13 +226,14 @@
                         $('#faded-background').hide();
                     }
 
+                    // hide the dialog
+                    dialog.hide();
+                    
+                    // invoke the handler
                     var handler = dialog.data('handler');
                     if (isDefinedAndNotNull(handler) && typeof handler.close === 'function') {
                         handler.close.call(dialog);
                     }
-
-                    // hide the dialog
-                    dialog.hide();
                 }
             });
         }

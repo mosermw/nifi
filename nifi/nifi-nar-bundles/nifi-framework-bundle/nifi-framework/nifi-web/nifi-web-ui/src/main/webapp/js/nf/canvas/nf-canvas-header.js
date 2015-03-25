@@ -62,8 +62,8 @@ nf.CanvasHeader = (function () {
 
             // mouse over for the flow settings link
             nf.Common.addHoverEffect('#flow-settings-link', 'flow-settings-link', 'flow-settings-link-hover').click(function () {
-                nf.Settings.showSettings().done(function () {
-                    nf.Settings.resetTableSize();
+                nf.Settings.loadSettings().done(function () {
+                    nf.Settings.showSettings();
                 });
             });
 
