@@ -258,13 +258,17 @@ public class ControllerServiceResource extends ApplicationResource {
             throw new IllegalArgumentException("Revision must be specified.");
         }
         
-        // get the revision
-        final RevisionDTO revision = controllerServiceEntity.getRevision();
-
         if (controllerServiceEntity.getControllerService().getId() != null) {
             throw new IllegalArgumentException("Controller service ID cannot be specified.");
         }
 
+        if (StringUtils.isBlank(controllerServiceEntity.getControllerService().getType())) {
+            throw new IllegalArgumentException("The type of controller service to create must be specified.");
+        }
+        
+        // get the revision
+        final RevisionDTO revision = controllerServiceEntity.getRevision();
+        
         // if cluster manager, convert POST to PUT (to maintain same ID across nodes) and replicate
         if (properties.isClusterManager() && Availability.NODE.equals(avail)) {
             // create ID for resource

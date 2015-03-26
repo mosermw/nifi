@@ -262,6 +262,10 @@ public class ProcessorResource extends ApplicationResource {
         if (processorEntity.getProcessor().getId() != null) {
             throw new IllegalArgumentException("Processor ID cannot be specified.");
         }
+        
+        if (StringUtils.isBlank(processorEntity.getProcessor().getType())) {
+            throw new IllegalArgumentException("The type of processor to create must be specified.");
+        }
 
         // if cluster manager, convert POST to PUT (to maintain same ID across nodes) and replicate
         if (properties.isClusterManager()) {
