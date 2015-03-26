@@ -63,13 +63,6 @@ public class WebClusterManagerFactoryBean implements FactoryBean, ApplicationCon
              */
             return null;
         } else if (clusterManager == null) {
-
-            // get the service configuration path (fail early)
-            final String serviceConfigurationFile = properties.getProperty(NiFiProperties.SERVICE_CONFIGURATION_FILE);
-            if (serviceConfigurationFile == null) {
-                throw new NullPointerException("The service configuration file has not been specified.");
-            }
-
             final HttpRequestReplicator requestReplicator = applicationContext.getBean("httpRequestReplicator", HttpRequestReplicator.class);
             final HttpResponseMapper responseMapper = applicationContext.getBean("httpResponseMapper", HttpResponseMapper.class);
             final DataFlowManagementService dataFlowService = applicationContext.getBean("dataFlowManagementService", DataFlowManagementService.class);
