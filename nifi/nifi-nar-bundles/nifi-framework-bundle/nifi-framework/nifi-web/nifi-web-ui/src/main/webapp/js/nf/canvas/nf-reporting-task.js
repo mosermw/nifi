@@ -202,6 +202,7 @@ nf.ReportingTask = (function () {
             
             // update the task
             renderReportingTask(response.reportingTask);
+            nf.ControllerService.reloadReferencedServices(response.reportingTask);
         }).fail(nf.Common.handleAjaxError);
     };
     
@@ -420,6 +421,7 @@ nf.ReportingTask = (function () {
 
                                             // reload the reporting task
                                             renderReportingTask(response.reportingTask);
+                                            nf.ControllerService.reloadReferencedServices(response.reportingTask);
 
                                             // close the details panel
                                             $('#reporting-task-configuration').modal('hide');
@@ -453,7 +455,9 @@ nf.ReportingTask = (function () {
                                     // show the custom ui
                                     nf.CustomUi.showCustomUi($('#reporting-task-id').text(), reportingTask.customUiUrl, true).done(function () {
                                         // once the custom ui is closed, reload the reporting task
-                                        nf.ReportingTask.reload(reportingTask.id);
+                                        nf.ReportingTask.reload(reportingTask.id).done(function (response) {
+                                            nf.ControllerService.reloadReferencedServices(response.reportingTask);
+                                        });
                                         
                                         // show the settings
                                         nf.Settings.showSettings();

@@ -223,12 +223,7 @@ nf.ControllerService = (function () {
 
         // see if this controller service references another controller service
         // in order to update the referenced service referencing components
-        $.each(controllerService.descriptors, function(_, descriptor) {
-            if (descriptor.identifiesControllerService === true) {
-                var referencedServiceId = controllerService.properties[descriptor.name];
-                reloadControllerService(referencedServiceId);
-            }
-        });
+        nf.ControllerService.reloadReferencedServices(controllerService);
     };   
     
     /**
@@ -408,13 +403,16 @@ nf.ControllerService = (function () {
                 
                 services.append(serviceItem);
             } else if (referencingComponent.referenceType === 'ReportingTask') {
-                var reportingTaskLink = $('<li></li>').text(referencingComponent.name).on('click', function () {
+                var reportingTaskLink = $('<span class="referencing-component-name link"></span>').text(referencingComponent.name).on('click', function () {
                     var reportingTaskGrid = $('#reporting-tasks-table').data('gridInstance');
                     var reportingTaskData = reportingTaskGrid.getData();
                     
                     // select the selected row
                     var row = reportingTaskData.getRowById(referencingComponent.id);
                     reportingTaskGrid.setSelectedRows([row]);
+                    
+                    // select the reporting task tab
+                    $('#settings-tabs').find('li:last').click();
                     
                     // close the dialog and shell
                     referenceContainer.closest('.dialog').modal('hide');
@@ -1597,6 +1595,22 @@ nf.ControllerService = (function () {
             } else {
                 showDisableControllerServiceDialog(controllerService);
             }
+        },
+        
+        /**
+         * Reloads the services that the specified comonent references. This is
+         * necessary because the specified component state is reflected in the 
+         * referenced service referencing components.
+         * 
+         * @param {object} component
+         */
+        reloadReferencedServices: function(component) {
+            $.each(component.descriptors, function(_, descriptor) {
+                if (descriptor.identifiesControllerService === true) {
+                    var referencedServiceId = component.properties[descriptor.name];
+                    reloadControllerService(referencedServiceId);
+                }
+            });
         },
         
         /**
