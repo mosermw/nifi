@@ -1608,7 +1608,9 @@ nf.ControllerService = (function () {
             $.each(component.descriptors, function(_, descriptor) {
                 if (descriptor.identifiesControllerService === true) {
                     var referencedServiceId = component.properties[descriptor.name];
-                    reloadControllerService(referencedServiceId);
+                    if (nf.Common.isDefinedAndNotNull(referencedServiceId) && $.trim(referencedServiceId).length > 0) {
+                        reloadControllerService(referencedServiceId);
+                    }
                 }
             });
         },
