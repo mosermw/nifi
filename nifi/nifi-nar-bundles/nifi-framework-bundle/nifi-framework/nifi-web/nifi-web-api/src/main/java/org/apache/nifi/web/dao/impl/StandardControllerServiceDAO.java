@@ -21,12 +21,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.nifi.controller.ScheduledState;
+import org.apache.nifi.controller.exception.ControllerServiceInstantiationException;
 
 import org.apache.nifi.controller.exception.ValidationException;
 import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceProvider;
 import org.apache.nifi.controller.service.ControllerServiceReference;
 import org.apache.nifi.controller.service.ControllerServiceState;
+import org.apache.nifi.web.NiFiCoreException;
 import org.apache.nifi.web.ResourceNotFoundException;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
 import org.apache.nifi.web.dao.ControllerServiceDAO;
@@ -66,16 +68,20 @@ public class StandardControllerServiceDAO extends ComponentDAO implements Contro
             throw new IllegalArgumentException("The controller service type must be specified.");
         }
         
-        // create the controller service
-        final ControllerServiceNode controllerService = serviceProvider.createControllerService(controllerServiceDTO.getType(), controllerServiceDTO.getId(), true);
-        
-        // ensure we can perform the update 
-        verifyUpdate(controllerService, controllerServiceDTO);
-        
-        // perform the update
-        configureControllerService(controllerService, controllerServiceDTO);
-        
-        return controllerService;
+        try {
+            // create the controller service
+            final ControllerServiceNode controllerService = serviceProvider.createControllerService(controllerServiceDTO.getType(), controllerServiceDTO.getId(), true);
+
+            // ensure we can perform the update 
+            verifyUpdate(controllerService, controllerServiceDTO);
+
+            // perform the update
+            configureControllerService(controllerService, controllerServiceDTO);
+
+            return controllerService;
+        } catch (final ControllerServiceInstantiationException csie) {
+            throw new NiFiCoreException(csie.getMessage(), csie);
+        }
     }
 
     /**
