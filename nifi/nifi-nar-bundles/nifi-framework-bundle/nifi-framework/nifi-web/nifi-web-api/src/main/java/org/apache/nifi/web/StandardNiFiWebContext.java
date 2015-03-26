@@ -196,7 +196,10 @@ public class StandardNiFiWebContext implements NiFiWebContext {
             }
 
             // return processor
-            final ProcessorEntity entity = nodeResponse.getClientResponse().getEntity(ProcessorEntity.class);
+            ProcessorEntity entity = (ProcessorEntity) nodeResponse.getUpdatedEntity();
+            if (entity == null) {
+                entity = nodeResponse.getClientResponse().getEntity(ProcessorEntity.class);
+            }
             processor = entity.getProcessor();
         } else {
             processor = serviceFacade.getProcessor(processorId);
