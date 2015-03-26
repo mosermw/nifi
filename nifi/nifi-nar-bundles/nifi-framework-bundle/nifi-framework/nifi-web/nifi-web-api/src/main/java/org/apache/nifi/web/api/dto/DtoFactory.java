@@ -1012,7 +1012,7 @@ public final class DtoFactory {
                 
                 propertyDescriptors = node.getControllerServiceImplementation().getPropertyDescriptors();
                 validationErrors = node.getValidationErrors();
-            } else if (component instanceof ReportingTask) {
+            } else if (component instanceof ReportingTaskNode) {
                 final ReportingTaskNode node = ((ReportingTaskNode) component);
                 dto.setState(node.getScheduledState().name());
                 dto.setActiveThreadCount(node.getActiveThreadCount());
