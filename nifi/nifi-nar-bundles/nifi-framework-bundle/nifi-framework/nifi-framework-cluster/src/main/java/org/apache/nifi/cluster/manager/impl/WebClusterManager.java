@@ -947,10 +947,10 @@ public class WebClusterManager implements HttpClusterManager, ProtocolHandler, C
                 final String scheduleStateValue = DomUtils.getChild(taskElement, "scheduledState").getTextContent().trim();
                 final ScheduledState scheduledState = ScheduledState.valueOf(scheduleStateValue);
                 
-                //optional task-specific properties
-                for (final Element optionalProperty : DomUtils.getChildElementsByTagName(taskElement, "property")) {
-                    final String name = optionalProperty.getAttribute("name");
-                    final String value = optionalProperty.getTextContent().trim();
+                // Reporting Task Properties
+                for (final Element property : DomUtils.getChildElementsByTagName(taskElement, "property")) {
+                    final String name = DomUtils.getChildText(property, "name");
+                    final String value = DomUtils.getChildText(property, "value");
                     properties.put(name, value);
                 }
 
