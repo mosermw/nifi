@@ -135,6 +135,15 @@ nf.ControllerService = (function () {
         var controllerServiceData = controllerServiceGrid.getData();
         var controllerService = controllerServiceData.getItemById(id);
         
+        // this may happen if controller service A references another controller
+        // service B that has been removed. attempting to enable/disable/remove A
+        // will attempt to reload B which is no longer a known service
+        if (nf.Common.isUndefined(controllerService)) {
+            return $.Deferred(function (deferred) {
+                deferred.reject();
+            }).promise();
+        }
+        
         return $.ajax({
             type: 'GET',
             url: controllerService.uri,
@@ -1580,7 +1589,7 @@ nf.ControllerService = (function () {
          */
         enable: function(controllerService) {
             if (nf.Common.isEmpty(controllerService.referencingComponents)) {
-                setEnabled(controllerService, true).always(function () {
+                setEnabled(controllerService, true).done(function () {
                     reloadControllerServiceAndReferencingComponents(controllerService);
                 });
             } else {
@@ -1595,7 +1604,7 @@ nf.ControllerService = (function () {
          */
         disable: function(controllerService) {
             if (nf.Common.isEmpty(controllerService.referencingComponents)) {
-                setEnabled(controllerService, false).always(function () {
+                setEnabled(controllerService, false).done(function () {
                     reloadControllerServiceAndReferencingComponents(controllerService);
                 });
             } else {
@@ -1614,6 +1623,8 @@ nf.ControllerService = (function () {
             $.each(component.descriptors, function(_, descriptor) {
                 if (descriptor.identifiesControllerService === true) {
                     var referencedServiceId = component.properties[descriptor.name];
+                    
+                    // ensure the property is configured
                     if (nf.Common.isDefinedAndNotNull(referencedServiceId) && $.trim(referencedServiceId).length > 0) {
                         reloadControllerService(referencedServiceId);
                     }
