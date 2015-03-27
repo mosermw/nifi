@@ -1116,6 +1116,9 @@ nf.ControllerService = (function () {
                         // clear the tables
                         $('#controller-service-properties').propertytable('clear');
                         
+                        // clear the comments
+                        nf.Common.clearField('read-only-controller-service-comments');
+                        
                         // removed the cached controller service details
                         $('#controller-service-configuration').removeData('controllerServiceDetails');
                     }

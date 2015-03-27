@@ -270,6 +270,9 @@ nf.ReportingTask = (function () {
                         // clear the tables
                         $('#reporting-task-properties').propertytable('clear');
                         
+                        // clear the comments
+                        nf.Common.clearField('read-only-reporting-task-comments');
+                        
                         // removed the cached reporting task details
                         $('#reporting-task-configuration').removeData('reportingTaskDetails');
                     }
