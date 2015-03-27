@@ -610,6 +610,9 @@ nf.ReportingTask = (function () {
                                 // reset state and close the dialog manually to avoid hiding the faded background
                                 reportingTaskDialog.modal('hide');
 
+                                // close the settings dialog since the custom ui is also opened in the shell
+                                $('#shell-close-button').click();
+
                                 // show the custom ui
                                 nf.CustomUi.showCustomUi(reportingTask.id, reportingTask.customUiUrl, false).done(function() {
                                     nf.Settings.showSettings();
