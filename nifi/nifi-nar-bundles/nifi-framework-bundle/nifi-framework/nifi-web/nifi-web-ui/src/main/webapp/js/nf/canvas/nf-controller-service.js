@@ -1589,7 +1589,7 @@ nf.ControllerService = (function () {
          */
         enable: function(controllerService) {
             if (nf.Common.isEmpty(controllerService.referencingComponents)) {
-                setEnabled(controllerService, true).done(function () {
+                setEnabled(controllerService, true).always(function () {
                     reloadControllerServiceAndReferencingComponents(controllerService);
                 });
             } else {
@@ -1604,7 +1604,7 @@ nf.ControllerService = (function () {
          */
         disable: function(controllerService) {
             if (nf.Common.isEmpty(controllerService.referencingComponents)) {
-                setEnabled(controllerService, false).done(function () {
+                setEnabled(controllerService, false).always(function () {
                     reloadControllerServiceAndReferencingComponents(controllerService);
                 });
             } else {
