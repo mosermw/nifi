@@ -358,12 +358,12 @@ public class StandardFlowSynchronizer implements FlowSynchronizer {
     private void updateControllerService(final FlowController controller, final Element controllerServiceElement, final StringEncryptor encryptor) {
     	final ControllerServiceDTO dto = FlowFromDOMFactory.getControllerService(controllerServiceElement, encryptor);
     	
-    	final ControllerServiceState state = ControllerServiceState.valueOf(dto.getState());
-        final boolean dtoEnabled = (state == ControllerServiceState.ENABLED || state == ControllerServiceState.ENABLING);
+    	final ControllerServiceState dtoState = ControllerServiceState.valueOf(dto.getState());
+        final boolean dtoEnabled = (dtoState == ControllerServiceState.ENABLED || dtoState == ControllerServiceState.ENABLING);
         
         final ControllerServiceNode serviceNode = controller.getControllerServiceNode(dto.getId());
         final ControllerServiceState serviceState = serviceNode.getState();
-        final boolean serviceEnabled = (serviceState == ControllerServiceState.ENABLED || state == ControllerServiceState.ENABLING);
+        final boolean serviceEnabled = (serviceState == ControllerServiceState.ENABLED || serviceState == ControllerServiceState.ENABLING);
         
     	if (dtoEnabled && !serviceEnabled) {
     		controller.enableControllerService(controller.getControllerServiceNode(dto.getId()));

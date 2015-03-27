@@ -652,7 +652,16 @@ nf.Settings = (function () {
                     handler: {
                         click: function () {
                             var selectedServiceType = $('#selected-controller-service-type').text();
-                            addControllerService(selectedServiceType);
+                            
+                            // ensure something was selected
+                            if (selectedServiceType === '') {
+                                nf.Dialog.showOkDialog({
+                                    dialogContent: 'The type of controller service to create must be selected.',
+                                    overlayBackground: false
+                                });
+                            } else {
+                                addControllerService(selectedServiceType);
+                            }
                         }
                     }
                 }, {
@@ -1297,7 +1306,16 @@ nf.Settings = (function () {
                     handler: {
                         click: function () {
                             var selectedTaskType = $('#selected-reporting-task-type').text();
-                            addReportingTask(selectedTaskType);
+                            
+                            // ensure something was selected
+                            if (selectedTaskType === '') {
+                                nf.Dialog.showOkDialog({
+                                    dialogContent: 'The type of reporting task to create must be selected.',
+                                    overlayBackground: false
+                                });
+                            } else {
+                                addReportingTask(selectedTaskType);
+                            }
                         }
                     }
                 }, {

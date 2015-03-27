@@ -135,6 +135,15 @@ nf.ControllerService = (function () {
         var controllerServiceData = controllerServiceGrid.getData();
         var controllerService = controllerServiceData.getItemById(id);
         
+        // this may happen if controller service A references another controller
+        // service B that has been removed. attempting to enable/disable/remove A
+        // will attempt to reload B which is no longer a known service
+        if (nf.Common.isUndefined(controllerService)) {
+            return $.Deferred(function (deferred) {
+                deferred.reject();
+            }).promise();
+        }
+        
         return $.ajax({
             type: 'GET',
             url: controllerService.uri,
@@ -1116,6 +1125,9 @@ nf.ControllerService = (function () {
                         // clear the tables
                         $('#controller-service-properties').propertytable('clear');
                         
+                        // clear the comments
+                        nf.Common.clearField('read-only-controller-service-comments');
+                        
                         // removed the cached controller service details
                         $('#controller-service-configuration').removeData('controllerServiceDetails');
                     }
@@ -1543,6 +1555,9 @@ nf.ControllerService = (function () {
                             click: function () {
                                 // reset state and close the dialog manually to avoid hiding the faded background
                                 controllerServiceDialog.modal('hide');
+                                
+                                // close the settings dialog since the custom ui is also opened in the shell
+                                $('#shell-close-button').click();
 
                                 // show the custom ui
                                 nf.CustomUi.showCustomUi(controllerService.id, controllerService.customUiUrl, false).done(function () {
@@ -1608,6 +1623,8 @@ nf.ControllerService = (function () {
             $.each(component.descriptors, function(_, descriptor) {
                 if (descriptor.identifiesControllerService === true) {
                     var referencedServiceId = component.properties[descriptor.name];
+                    
+                    // ensure the property is configured
                     if (nf.Common.isDefinedAndNotNull(referencedServiceId) && $.trim(referencedServiceId).length > 0) {
                         reloadControllerService(referencedServiceId);
                     }

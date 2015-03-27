@@ -270,6 +270,9 @@ nf.ReportingTask = (function () {
                         // clear the tables
                         $('#reporting-task-properties').propertytable('clear');
                         
+                        // clear the comments
+                        nf.Common.clearField('read-only-reporting-task-comments');
+                        
                         // removed the cached reporting task details
                         $('#reporting-task-configuration').removeData('reportingTaskDetails');
                     }
@@ -606,6 +609,9 @@ nf.ReportingTask = (function () {
                             click: function () {
                                 // reset state and close the dialog manually to avoid hiding the faded background
                                 reportingTaskDialog.modal('hide');
+
+                                // close the settings dialog since the custom ui is also opened in the shell
+                                $('#shell-close-button').click();
 
                                 // show the custom ui
                                 nf.CustomUi.showCustomUi(reportingTask.id, reportingTask.customUiUrl, false).done(function() {

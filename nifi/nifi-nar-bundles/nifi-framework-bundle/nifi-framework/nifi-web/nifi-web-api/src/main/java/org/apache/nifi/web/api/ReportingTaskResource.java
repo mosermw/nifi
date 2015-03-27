@@ -254,12 +254,16 @@ public class ReportingTaskResource extends ApplicationResource {
             throw new IllegalArgumentException("Revision must be specified.");
         }
         
-        // get the revision
-        final RevisionDTO revision = reportingTaskEntity.getRevision();
-
         if (reportingTaskEntity.getReportingTask().getId() != null) {
             throw new IllegalArgumentException("Reporting task ID cannot be specified.");
         }
+        
+        if (StringUtils.isBlank(reportingTaskEntity.getReportingTask().getType())) {
+            throw new IllegalArgumentException("The type of reporting task to create must be specified.");
+        }
+        
+        // get the revision
+        final RevisionDTO revision = reportingTaskEntity.getRevision();
 
         // if cluster manager, convert POST to PUT (to maintain same ID across nodes) and replicate
         if (properties.isClusterManager() && Availability.NODE.equals(avail)) {
