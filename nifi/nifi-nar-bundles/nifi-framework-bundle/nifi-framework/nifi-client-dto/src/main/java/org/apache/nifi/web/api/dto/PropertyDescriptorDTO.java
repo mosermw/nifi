@@ -16,7 +16,7 @@
  */
 package org.apache.nifi.web.api.dto;
 
-import java.util.Set;
+import java.util.List;
 import javax.xml.bind.annotation.XmlType;
 
 /**
@@ -29,7 +29,7 @@ public class PropertyDescriptorDTO {
     private String displayName;
     private String description;
     private String defaultValue;
-    private Set<AllowableValueDTO> allowableValues;
+    private List<AllowableValueDTO> allowableValues;
     private boolean required;
     private boolean sensitive;
     private boolean dynamic;
@@ -42,11 +42,11 @@ public class PropertyDescriptorDTO {
      *
      * @return
      */
-    public Set<AllowableValueDTO> getAllowableValues() {
+    public List<AllowableValueDTO> getAllowableValues() {
         return allowableValues;
     }
 
-    public void setAllowableValues(Set<AllowableValueDTO> allowableValues) {
+    public void setAllowableValues(List<AllowableValueDTO> allowableValues) {
         this.allowableValues = allowableValues;
     }
 

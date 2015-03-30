@@ -1965,7 +1965,7 @@ public final class DtoFactory {
             if (serviceDefinition == null) {
                 dto.setAllowableValues(null);
             } else {
-                final Set<AllowableValueDTO> allowableValues = new LinkedHashSet<>();
+                final List<AllowableValueDTO> allowableValues = new ArrayList<>();
                 for (final String serviceIdentifier : controllerServiceLookup.getControllerServiceIdentifiers(serviceDefinition)) {
                 	final String displayName = controllerServiceLookup.getControllerServiceName(serviceIdentifier);
 
@@ -1977,7 +1977,7 @@ public final class DtoFactory {
                 dto.setAllowableValues(allowableValues);
             }
         } else {
-            final Set<AllowableValueDTO> allowableValues = new LinkedHashSet<>();
+            final List<AllowableValueDTO> allowableValues = new ArrayList<>();
             for (final AllowableValue allowableValue : propertyDescriptor.getAllowableValues()) {
                 final AllowableValueDTO allowableValueDto = new AllowableValueDTO();
                 allowableValueDto.setDisplayName(allowableValue.getDisplayName());
