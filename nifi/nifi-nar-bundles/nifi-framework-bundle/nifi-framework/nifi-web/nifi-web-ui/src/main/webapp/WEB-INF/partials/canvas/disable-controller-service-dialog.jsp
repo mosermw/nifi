@@ -58,7 +58,10 @@
         <div class="spacer">&nbsp;</div>
         <div class="settings-right">
             <div class="setting">
-                <div class="setting-name">Referencing Components</div>
+                <div class="setting-name">
+                    Referencing Components
+                    <img class="setting-icon icon-info" src="images/iconInfo.png" alt="Info" title="Other components referencing this controller service."/>
+                </div>
                 <div class="setting-field">
                     <div id="disable-controller-service-referencing-components"></div>
                 </div>
