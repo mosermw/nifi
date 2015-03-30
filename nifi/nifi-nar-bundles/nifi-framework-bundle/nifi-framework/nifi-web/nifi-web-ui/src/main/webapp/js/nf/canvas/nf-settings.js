@@ -345,7 +345,7 @@ nf.Settings = (function () {
         var indent = 0;
         var documentedType = dataContext;
         while (documentedType.parent !== null) {
-            indent += 10;
+            indent += 20;
             documentedType = documentedType.parent;
         }
 
@@ -359,15 +359,24 @@ nf.Settings = (function () {
                 expansionStyle = 'collapsed';
             }
 
-            // to calculate the number of visible children
+            // calculate the number of visible/total children
             var visibleChildren = 0;
-            $.each(dataContext.children, function (_, child) {
-                if (child.visible) {
-                    visibleChildren++;
-                }
-            });
+            var totalChildren = 0;
+            var countChildren = function (item) {
+                $.each(item.children, function (_, child) {
+                    if (child.children.length > 0) {
+                        countChildren(child);
+                    } else {
+                        if (child.visible) {
+                            visibleChildren++;
+                        }
+                        totalChildren++;
+                    }
+                });
+            };
+            countChildren(dataContext);
 
-            markup += ('<span style="margin-top: 5px; margin-left: ' + indent + 'px;" class="expansion-button ' + expansionStyle + '"></span><span class="ancestor-type" style="margin-left: ' + padding + 'px;">' + value + '</span><span class="ancestor-type-rollup">(' + visibleChildren + ' of ' + dataContext.children.length + ')</span>');
+            markup += ('<span style="margin-top: 5px; margin-left: ' + indent + 'px;" class="expansion-button ' + expansionStyle + '"></span><span class="ancestor-type" style="margin-left: ' + padding + 'px;">' + value + '</span><span class="ancestor-type-rollup">(' + visibleChildren + ' of ' + totalChildren + ')</span>');
         } else {
             if (dataContext.parent === null) {
                 padding = 0;
@@ -555,6 +564,13 @@ nf.Settings = (function () {
                 // update the grid
                 item.collapsed = !item.collapsed;
                 controllerServiceTypesData.updateItem(item.id, item);
+
+                // update any affected ancestors
+                var parent = item.parent;
+                while (parent !== null) {
+                    controllerServiceTypesData.updateItem(parent.id, parent);
+                    parent = parent.parent;
+                }
 
                 // prevent selection within slickgrid
                 e.stopImmediatePropagation();
