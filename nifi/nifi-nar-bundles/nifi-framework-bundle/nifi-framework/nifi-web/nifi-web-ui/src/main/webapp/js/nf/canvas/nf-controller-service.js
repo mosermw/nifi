@@ -599,13 +599,14 @@ nf.ControllerService = (function () {
                         var referencingService = controllerServiceData.getItemById(controllerServiceId);
                         polling.push(stopReferencingSchedulableComponents(referencingService, pollCondition));
                     });
+                    
+                    // wait until polling has finished
+                    $.when.apply(window, polling).done(function () {
+                        deferred.resolve();
+                    }).fail(function() {
+                        deferred.reject();
+                    });
                 }
-                
-                $.when.apply(window, polling).done(function () {
-                    deferred.resolve();
-                }).fail(function() {
-                    deferred.reject();
-                });
             }).fail(function() {
                 deferred.reject();
             });
@@ -780,7 +781,6 @@ nf.ControllerService = (function () {
             nf.Client.setRevision(response.revision);
         }).fail(nf.Common.handleAjaxError);
         
-        // need to wait until finished ENALBING or DISABLING?
         // wait unil the polling of each service finished
         return $.Deferred(function(deferred) {
             updated.done(function(response) {
@@ -1396,10 +1396,11 @@ nf.ControllerService = (function () {
                                 if (validateDetails(updatedControllerService)) {
                                     var previouslyReferencedServiceIds = [];
                                     $.each(identifyReferencedServiceDescriptors(controllerService), function (_, descriptor) {
-                                        // if we are attempting to update a controller service reference
-                                        if (!nf.Common.isUndefined(updatedControllerService.controllerService.properties[descriptor.name]) &&
-                                                !nf.Common.isNull(controllerService.properties[descriptor.name])) {
+                                        var modifyingService = !nf.Common.isUndefined(updatedControllerService.controllerService.properties) && !nf.Common.isUndefined(updatedControllerService.controllerService.properties[descriptor.name]);
+                                        var isCurrentlyConfigured = nf.Common.isDefinedAndNotNull(controllerService.properties[descriptor.name]);
                                         
+                                        // if we are attempting to update a controller service reference
+                                        if (modifyingService && isCurrentlyConfigured) {
                                             // record the current value if set
                                             previouslyReferencedServiceIds.push(controllerService.properties[descriptor.name]);
                                         }
@@ -1483,9 +1484,11 @@ nf.ControllerService = (function () {
                                             if (validateDetails(updatedControllerService)) {
                                                 var previouslyReferencedServiceIds = [];
                                                 $.each(identifyReferencedServiceDescriptors(controllerService), function (_, descriptor) {
+                                                    var modifyingService = !nf.Common.isUndefined(updatedControllerService.controllerService.properties) && !nf.Common.isUndefined(updatedControllerService.controllerService.properties[descriptor.name]);
+                                                    var isCurrentlyConfigured = nf.Common.isDefinedAndNotNull(controllerService.properties[descriptor.name]);
+
                                                     // if we are attempting to update a controller service reference
-                                                    if (!nf.Common.isUndefined(updatedControllerService.controllerService.properties[descriptor.name]) &&
-                                                            !nf.Common.isNull(controllerService.properties[descriptor.name])) {
+                                                    if (modifyingService && isCurrentlyConfigured) {
                                                         
                                                         // record the current value if set
                                                         previouslyReferencedServiceIds.push(controllerService.properties[descriptor.name]);
