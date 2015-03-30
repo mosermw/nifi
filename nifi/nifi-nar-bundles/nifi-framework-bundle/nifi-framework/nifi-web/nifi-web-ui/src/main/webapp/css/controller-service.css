@@ -202,7 +202,7 @@ div.referencing-component-references {
 #disable-controller-service-referencing-components {
     border: 0 solid #CCCCCC;
     padding: 2px;
-    width: 432px;
+    width: 429px;
     height: 335px;
     overflow: auto;
     white-space: nowrap;
@@ -245,7 +245,7 @@ div.referencing-component-references {
 #enable-controller-service-referencing-components {
     border: 0 solid #ccc;
     padding: 2px;
-    width: 432px;
+    width: 429px;
     height: 335px;
     overflow: auto;
     white-space: nowrap;
