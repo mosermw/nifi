@@ -104,8 +104,7 @@ div.availability-setting {
 #controller-service-referencing-components {
     border: 0 solid #CCCCCC;
     height: 280px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: auto;
     padding: 2px;
     width: 376px;
 }
@@ -131,6 +130,7 @@ ul.referencing-component-listing {
 
 ul.referencing-component-listing li {
     margin-bottom: 6px;
+    white-space: nowrap;
 }
 
 div.referencing-component-state {
@@ -202,7 +202,7 @@ div.referencing-component-references {
 #disable-controller-service-referencing-components {
     border: 0 solid #CCCCCC;
     padding: 2px;
-    width: 432px;
+    width: 429px;
     height: 335px;
     overflow: auto;
     white-space: nowrap;
@@ -245,7 +245,7 @@ div.referencing-component-references {
 #enable-controller-service-referencing-components {
     border: 0 solid #ccc;
     padding: 2px;
-    width: 432px;
+    width: 429px;
     height: 335px;
     overflow: auto;
     white-space: nowrap;

@@ -1437,7 +1437,10 @@ public final class DtoFactory {
         }
         
         // move the interfaces into the appropriate hierarchy
+        final Collection<Class> rootTypes = new ArrayList<>();
         for (final Class<?> i : interfaces) {
+            rootTypes.add(i);
+            
             // identify the base types
             final Set<Class> baseTypes = new LinkedHashSet<>();
             identifyBaseTypes(baseClass, i, baseTypes, false);
@@ -1458,19 +1461,19 @@ public final class DtoFactory {
                 
                 // remove this interface from the lookup (this will only
                 // leave the interfaces that are ancestor roots)
-                lookup.remove(i);
+                rootTypes.remove(i);
             }
         }
 
         // include the interfaces
-        sortedClasses.addAll(lookup.keySet());
+        sortedClasses.addAll(rootTypes);
         
         // get the DTO form for all interfaces and classes
         for (final Class<?> cls : sortedClasses) {
             boolean add = false;
             
             final DocumentedTypeDTO type;
-            if (lookup.containsKey(cls)) {
+            if (rootTypes.contains(cls)) {
                 type = lookup.get(cls);
                 add = true;
             } else {
@@ -1490,13 +1493,13 @@ public final class DtoFactory {
             } else {
                 // get the DTO for each base type
                 for (final Class baseType : baseTypes) {
-                    final DocumentedTypeDTO parentInteface = lookup.get(baseType);
+                    final DocumentedTypeDTO parentInterface = lookup.get(baseType);
 
                     // include all parent tags in the respective children
-                    type.getTags().addAll(parentInteface.getTags());
+                    type.getTags().addAll(parentInterface.getTags());
 
                     // update the hierarchy
-                    parentInteface.getChildTypes().add(type);
+                    parentInterface.getChildTypes().add(type);
                 }
             }
             
@@ -1962,7 +1965,7 @@ public final class DtoFactory {
             if (serviceDefinition == null) {
                 dto.setAllowableValues(null);
             } else {
-                final Set<AllowableValueDTO> allowableValues = new LinkedHashSet<>();
+                final List<AllowableValueDTO> allowableValues = new ArrayList<>();
                 for (final String serviceIdentifier : controllerServiceLookup.getControllerServiceIdentifiers(serviceDefinition)) {
                 	final String displayName = controllerServiceLookup.getControllerServiceName(serviceIdentifier);
 
@@ -1974,7 +1977,7 @@ public final class DtoFactory {
                 dto.setAllowableValues(allowableValues);
             }
         } else {
-            final Set<AllowableValueDTO> allowableValues = new LinkedHashSet<>();
+            final List<AllowableValueDTO> allowableValues = new ArrayList<>();
             for (final AllowableValue allowableValue : propertyDescriptor.getAllowableValues()) {
                 final AllowableValueDTO allowableValueDto = new AllowableValueDTO();
                 allowableValueDto.setDisplayName(allowableValue.getDisplayName());

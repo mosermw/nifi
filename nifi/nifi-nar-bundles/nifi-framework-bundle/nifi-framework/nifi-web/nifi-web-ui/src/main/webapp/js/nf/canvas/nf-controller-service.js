@@ -599,13 +599,14 @@ nf.ControllerService = (function () {
                         var referencingService = controllerServiceData.getItemById(controllerServiceId);
                         polling.push(stopReferencingSchedulableComponents(referencingService, pollCondition));
                     });
+                    
+                    // wait until polling has finished
+                    $.when.apply(window, polling).done(function () {
+                        deferred.resolve();
+                    }).fail(function() {
+                        deferred.reject();
+                    });
                 }
-                
-                $.when.apply(window, polling).done(function () {
-                    deferred.resolve();
-                }).fail(function() {
-                    deferred.reject();
-                });
             }).fail(function() {
                 deferred.reject();
             });
@@ -780,7 +781,6 @@ nf.ControllerService = (function () {
             nf.Client.setRevision(response.revision);
         }).fail(nf.Common.handleAjaxError);
         
-        // need to wait until finished ENALBING or DISABLING?
         // wait unil the polling of each service finished
         return $.Deferred(function(deferred) {
             updated.done(function(response) {
@@ -873,7 +873,7 @@ nf.ControllerService = (function () {
         var disableDialog = $(this);
         var canceled = false;
                             
-        // only provide a close option
+        // only provide a cancel option
         disableDialog.modal('setButtonModel', [{
             buttonText: 'Cancel',
             handler: {
@@ -958,7 +958,7 @@ nf.ControllerService = (function () {
         var enableDialog = $(this);
         var canceled = false;
                             
-        // only provide a close option
+        // only provide a cancel option
         enableDialog.modal('setButtonModel', [{
             buttonText: 'Cancel',
             handler: {
@@ -1067,6 +1067,43 @@ nf.ControllerService = (function () {
             },
             dataType: 'json'
         }).fail(nf.Common.handleAjaxError);
+    };
+    
+    /**
+     * Identifies the descriptors that identify controller services.
+     * 
+     * @param {object} component
+     */
+    var identifyReferencedServiceDescriptors = function (component) {
+        var referencedServiceDescriptors = [];
+        
+        $.each(component.descriptors, function(_, descriptor) {
+            if (descriptor.identifiesControllerService === true) {
+                referencedServiceDescriptors.push(descriptor);
+            }
+        });
+        
+        return referencedServiceDescriptors;
+    };
+    
+    /**
+     * Identifies descritpors that reference controller services.
+     * 
+     * @param {object} component
+     */
+    var getReferencedServices = function (component) {
+        var referencedServices = [];
+        
+        $.each(identifyReferencedServiceDescriptors(component), function(_, descriptor) {
+            var referencedServiceId = component.properties[descriptor.name];
+
+            // ensure the property is configured
+            if (nf.Common.isDefinedAndNotNull(referencedServiceId) && $.trim(referencedServiceId).length > 0) {
+                referencedServices.push(referencedServiceId);
+            }
+        });
+        
+        return referencedServices;
     };
     
     return {
@@ -1357,6 +1394,18 @@ nf.ControllerService = (function () {
 
                                 // ensure details are valid as far as we can tell
                                 if (validateDetails(updatedControllerService)) {
+                                    var previouslyReferencedServiceIds = [];
+                                    $.each(identifyReferencedServiceDescriptors(controllerService), function (_, descriptor) {
+                                        var modifyingService = !nf.Common.isUndefined(updatedControllerService.controllerService.properties) && !nf.Common.isUndefined(updatedControllerService.controllerService.properties[descriptor.name]);
+                                        var isCurrentlyConfigured = nf.Common.isDefinedAndNotNull(controllerService.properties[descriptor.name]);
+                                        
+                                        // if we are attempting to update a controller service reference
+                                        if (modifyingService && isCurrentlyConfigured) {
+                                            // record the current value if set
+                                            previouslyReferencedServiceIds.push(controllerService.properties[descriptor.name]);
+                                        }
+                                    });
+                                    
                                     // update the selected component
                                     $.ajax({
                                         type: 'PUT',
@@ -1371,6 +1420,12 @@ nf.ControllerService = (function () {
 
                                             // reload the controller service
                                             renderControllerService(response.controllerService);
+                                            reloadControllerServiceReferences(response.controllerService);
+                                            
+                                            // reload all previously referenced controller services
+                                            $.each(previouslyReferencedServiceIds, function(_, oldServiceReferenceId) {
+                                                reloadControllerService(oldServiceReferenceId);
+                                            });
 
                                             // close the details panel
                                             controllerServiceDialog.modal('hide');
@@ -1427,6 +1482,19 @@ nf.ControllerService = (function () {
 
                                             // ensure details are valid as far as we can tell
                                             if (validateDetails(updatedControllerService)) {
+                                                var previouslyReferencedServiceIds = [];
+                                                $.each(identifyReferencedServiceDescriptors(controllerService), function (_, descriptor) {
+                                                    var modifyingService = !nf.Common.isUndefined(updatedControllerService.controllerService.properties) && !nf.Common.isUndefined(updatedControllerService.controllerService.properties[descriptor.name]);
+                                                    var isCurrentlyConfigured = nf.Common.isDefinedAndNotNull(controllerService.properties[descriptor.name]);
+
+                                                    // if we are attempting to update a controller service reference
+                                                    if (modifyingService && isCurrentlyConfigured) {
+                                                        
+                                                        // record the current value if set
+                                                        previouslyReferencedServiceIds.push(controllerService.properties[descriptor.name]);
+                                                    }
+                                                });
+
                                                 // update the selected component
                                                 $.ajax({
                                                     type: 'PUT',
@@ -1439,6 +1507,11 @@ nf.ControllerService = (function () {
                                                     if (nf.Common.isDefinedAndNotNull(response.controllerService)) {
                                                         // update the revision
                                                         nf.Client.setRevision(response.revision);
+
+                                                        // reload all previously referenced controller services
+                                                        $.each(previouslyReferencedServiceIds, function(_, oldServiceReferenceId) {
+                                                            reloadControllerService(oldServiceReferenceId);
+                                                        });
 
                                                         // open the custom ui
                                                         openCustomUi();
@@ -1620,15 +1693,8 @@ nf.ControllerService = (function () {
          * @param {object} component
          */
         reloadReferencedServices: function(component) {
-            $.each(component.descriptors, function(_, descriptor) {
-                if (descriptor.identifiesControllerService === true) {
-                    var referencedServiceId = component.properties[descriptor.name];
-                    
-                    // ensure the property is configured
-                    if (nf.Common.isDefinedAndNotNull(referencedServiceId) && $.trim(referencedServiceId).length > 0) {
-                        reloadControllerService(referencedServiceId);
-                    }
-                }
+            $.each(getReferencedServices(component), function (_, referencedServiceId) {
+                reloadControllerService(referencedServiceId);
             });
         },
         
