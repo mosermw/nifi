@@ -68,7 +68,7 @@ import org.apache.nifi.web.api.entity.ReportingTaskEntity;
 import org.apache.nifi.web.util.ClientResponseUtils;
 
 /**
- * Implements the NiFiWebContext interface to support a context in both
+ * Implements the NiFiWebConfigurationContext interface to support a context in both
  * standalone and clustered environments.
  */
 public class StandardNiFiWebConfigurationContext implements NiFiWebConfigurationContext {
@@ -95,6 +95,11 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
     public void saveActions(final NiFiWebRequestContext requestContext, final Collection<ConfigurationAction> configurationActions) {
         Objects.requireNonNull(configurationActions, "Actions cannot be null.");
 
+        // ensure the path could be 
+        if (requestContext.getExtensionType() == null) {
+            throw new IllegalArgumentException("The UI extension type must be specified.");
+        }
+        
         Component componentType = null;
         switch (requestContext.getExtensionType()) {
             case ProcessorConfiguration:
@@ -109,7 +114,7 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
         }
 
         if (componentType == null) {
-            throw new IllegalArgumentException("UI extension must support Processor, ControllerService, or ReportingTask configuration");
+            throw new IllegalArgumentException("UI extension type must support Processor, ControllerService, or ReportingTask configuration.");
         }
         
         // - when running standalone or cluster ncm - actions from custom UIs are stored locally
@@ -180,12 +185,12 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
         final String id = requestContext.getId();
 
         if (StringUtils.isBlank(id)) {
-            throw new ResourceNotFoundException(String.format("Context config did not have a component ID."));
+            throw new ResourceNotFoundException(String.format("Configuration request context config did not have a component ID."));
         }
 
         // ensure the path could be 
         if (requestContext.getExtensionType() == null) {
-            throw new ResourceNotFoundException(String.format("The type must be one of ['%s']", StringUtils.join(UiExtensionType.values(), "', '")));
+            throw new IllegalArgumentException("The UI extension type must be specified.");
         }
         
         // get the component facade for interacting directly with that type of object
@@ -203,7 +208,7 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
         }
         
         if (componentFacade == null) {
-            throw new ResourceNotFoundException(String.format("The type must be one of ['%s']", StringUtils.join(UiExtensionType.values(), "', '")));
+            throw new IllegalArgumentException("UI extension type must support Processor, ControllerService, or ReportingTask configuration.");
         }
         
         return componentFacade.getComponentDetails(requestContext);
@@ -217,7 +222,12 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
         final String id = requestContext.getId();
 
         if (StringUtils.isBlank(id)) {
-            throw new ResourceNotFoundException(String.format("Context config did not have a component ID."));
+            throw new ResourceNotFoundException(String.format("Configuration request context did not have a component ID."));
+        }
+        
+        // ensure the path could be 
+        if (requestContext.getExtensionType() == null) {
+            throw new IllegalArgumentException("The UI extension type must be specified.");
         }
 
         // get the component facade for interacting directly with that type of object
@@ -235,7 +245,7 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
         }
         
         if (componentFacade == null) {
-            throw new ResourceNotFoundException(String.format("The type must be one of ['%s']", StringUtils.join(UiExtensionType.values(), "', '")));
+            throw new IllegalArgumentException("UI extension type must support Processor, ControllerService, or ReportingTask configuration.");
         }
         
         return componentFacade.setAnnotationData(requestContext, annotationData);
