@@ -1642,7 +1642,7 @@ nf.ControllerService = (function () {
                 }
                 
                 // show the dialog
-                controllerServiceDialog.modal('setButtonModel', buttons).modal('show');
+                controllerServiceDialog.modal('setButtonModel', buttons);
                 
                 // load the property table
                 $('#controller-service-properties').propertytable('loadProperties', controllerService.properties, controllerService.descriptors, controllerServiceHistory.propertyHistory);
