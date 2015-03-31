@@ -983,12 +983,18 @@ public class WebClusterManager implements HttpClusterManager, ProtocolHandler, C
                     resolvedProps = new HashMap<>();
                     for (final Map.Entry<String, String> entry : properties.entrySet()) {
                         final PropertyDescriptor descriptor = reportingTask.getPropertyDescriptor(entry.getKey());
-                        resolvedProps.put(descriptor, entry.getValue());
+                        if ( entry.getValue() == null ) {
+                            resolvedProps.put(descriptor, descriptor.getDefaultValue());
+                        } else {
+                            resolvedProps.put(descriptor, entry.getValue());
+                        }
                     }
                 }
 
                 for (final Map.Entry<PropertyDescriptor, String> entry : resolvedProps.entrySet()) {
-                    reportingTaskNode.setProperty(entry.getKey().getName(), entry.getValue());
+                    if ( entry.getValue() != null ) {
+                        reportingTaskNode.setProperty(entry.getKey().getName(), entry.getValue());
+                    }
                 }
                 
                 final String comments = DomUtils.getChildText(taskElement, "comment");

@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -170,10 +171,26 @@ public class StandardFlowSynchronizer implements FlowSynchronizer {
                         controller.setMaxEventDrivenThreadCount(maxThreadCount / 3);
                     }
 
+                    final Element reportingTasksElement = (Element) DomUtils.getChild(rootElement, "reportingTasks");
+                    final List<Element> taskElements;
+                    if ( reportingTasksElement == null ) {
+                        taskElements = Collections.emptyList();
+                    } else {
+                        taskElements = DomUtils.getChildElementsByTagName(reportingTasksElement, "reportingTask");
+                    }
+                    
+                    final Element controllerServicesElement = (Element) DomUtils.getChild(rootElement, "controllerServices");
+                    final List<Element> controllerServiceElements;
+                    if ( controllerServicesElement == null ) {
+                        controllerServiceElements = Collections.emptyList();
+                    } else {
+                        controllerServiceElements = DomUtils.getChildElementsByTagName(controllerServicesElement, "controllerService");
+                    }
+                    
                     logger.trace("Parsing process group from DOM");
                     final Element rootGroupElement = (Element) rootElement.getElementsByTagName("rootGroup").item(0);
                     final ProcessGroupDTO rootGroupDto = FlowFromDOMFactory.getProcessGroup(null, rootGroupElement, encryptor);
-                    existingFlowEmpty = isEmpty(rootGroupDto);
+                    existingFlowEmpty = taskElements.isEmpty() && controllerServiceElements.isEmpty() && isEmpty(rootGroupDto);
                     logger.debug("Existing Flow Empty = {}", existingFlowEmpty);
                 }
             }
