@@ -22,6 +22,8 @@ package org.apache.nifi.web;
 public interface NiFiWebConfigurationRequestContext extends NiFiWebRequestContext {
 
     /**
+     * The revision to include in the request.
+     * 
      * @return the revision
      */
     Revision getRevision();

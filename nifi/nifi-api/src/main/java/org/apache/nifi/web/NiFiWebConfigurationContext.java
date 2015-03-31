@@ -50,6 +50,8 @@ public interface NiFiWebConfigurationContext {
      *
      * @param requestContext
      * @param actions
+     * @throws IllegalArgumentException     When the requestContext isn't fully populated or 
+     * isn't appropriate for the given request
      */
     void saveActions(NiFiWebRequestContext requestContext, Collection<ConfigurationAction> actions);
 
@@ -79,6 +81,8 @@ public interface NiFiWebConfigurationContext {
      * @throws ClusterRequestException if the annotation data was unable to be
      * set for the underlying component. This exception will only be thrown when operating
      * in a cluster.
+     * @throws IllegalArgumentException     When the requestContext isn't fully populated or 
+     * isn't appropriate for the given request
      */
     ComponentDetails setAnnotationData(NiFiWebConfigurationRequestContext configurationContext, String annotationData) throws ResourceNotFoundException, InvalidRevisionException, ClusterRequestException;
     
@@ -91,6 +95,8 @@ public interface NiFiWebConfigurationContext {
      * @throws ClusterRequestException if the underlying component was unable to be
      * retrieved from the cluster. This exception will only be thrown when
      * operating in a cluster.
+     * @throws IllegalArgumentException     When the requestContext isn't fully populated or 
+     * isn't appropriate for the given request
      */
     ComponentDetails getComponentDetails(NiFiWebRequestContext requestContext) throws ResourceNotFoundException, ClusterRequestException;
 }
