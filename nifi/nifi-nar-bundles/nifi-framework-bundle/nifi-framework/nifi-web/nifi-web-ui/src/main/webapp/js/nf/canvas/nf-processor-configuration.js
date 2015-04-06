@@ -470,7 +470,7 @@ nf.ProcessorConfiguration = (function () {
             // initialize the property table
             $('#processor-properties').propertytable({
                 readOnly: false,
-                newPropertyDialogContainer: '#new-processor-property-container',
+                dialogContainer: '#new-processor-property-container',
                 descriptorDeferred: function(propertyName) {
                     var processor = $('#processor-configuration').data('processorDetails');
                     return $.ajax({

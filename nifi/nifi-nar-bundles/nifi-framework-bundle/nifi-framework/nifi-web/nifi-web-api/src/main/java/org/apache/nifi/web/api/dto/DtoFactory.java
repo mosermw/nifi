@@ -1958,7 +1958,11 @@ public final class DtoFactory {
         dto.setDescription(propertyDescriptor.getDescription());
         dto.setDefaultValue(propertyDescriptor.getDefaultValue());
         dto.setSupportsEl(propertyDescriptor.isExpressionLanguageSupported());
-        dto.setIdentifiesControllerService(propertyDescriptor.getControllerServiceDefinition() != null);
+        
+        // set the identifies controller service is applicable
+        if (propertyDescriptor.getControllerServiceDefinition() != null) {
+            dto.setIdentifiesControllerService(propertyDescriptor.getControllerServiceDefinition().getName());
+        }
 
         final Class<? extends ControllerService> serviceDefinition = propertyDescriptor.getControllerServiceDefinition();
         if (propertyDescriptor.getAllowableValues() == null) {
