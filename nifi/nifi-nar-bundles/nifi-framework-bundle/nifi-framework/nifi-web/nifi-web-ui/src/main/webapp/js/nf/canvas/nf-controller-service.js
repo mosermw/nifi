@@ -374,6 +374,7 @@ nf.ControllerService = (function () {
                     // select the selected row
                     var row = controllerServiceData.getRowById(referencingComponent.id);
                     controllerServiceGrid.setSelectedRows([row]);
+                    controllerServiceGrid.scrollRowIntoView(row);
                     
                     // close the dialog and shell
                     referenceContainer.closest('.dialog').modal('hide');
@@ -419,6 +420,7 @@ nf.ControllerService = (function () {
                     // select the selected row
                     var row = reportingTaskData.getRowById(referencingComponent.id);
                     reportingTaskGrid.setSelectedRows([row]);
+                    reportingTaskGrid.scrollRowIntoView(row);
                     
                     // select the reporting task tab
                     $('#settings-tabs').find('li:last').click();
@@ -1078,7 +1080,7 @@ nf.ControllerService = (function () {
         var referencedServiceDescriptors = [];
         
         $.each(component.descriptors, function(_, descriptor) {
-            if (descriptor.identifiesControllerService === true) {
+            if (nf.Common.isDefinedAndNotNull(descriptor.identifiesControllerService)) {
                 referencedServiceDescriptors.push(descriptor);
             }
         });
@@ -1180,7 +1182,7 @@ nf.ControllerService = (function () {
             // initialize the property table
             $('#controller-service-properties').propertytable({
                 readOnly: false,
-                newPropertyDialogContainer: '#new-controller-service-property-container',
+                dialogContainer: '#new-controller-service-property-container',
                 descriptorDeferred: getControllerServicePropertyDescriptor
             });
             
@@ -1324,7 +1326,7 @@ nf.ControllerService = (function () {
                 // initialize the property table
                 $('#controller-service-properties').propertytable('destroy').propertytable({
                     readOnly: false,
-                    newPropertyDialogContainer: '#new-controller-service-property-container',
+                    dialogContainer: '#new-controller-service-property-container',
                     descriptorDeferred: getControllerServicePropertyDescriptor
                 });
                 

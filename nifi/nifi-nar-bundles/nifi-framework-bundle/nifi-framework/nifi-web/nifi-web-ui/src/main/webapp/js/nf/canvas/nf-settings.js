@@ -431,6 +431,7 @@ nf.Settings = (function () {
             // select the new controller service
             var row = controllerServicesData.getRowById(controllerService.id);
             controllerServicesGrid.setSelectedRows([row]);
+            controllerServicesGrid.scrollRowIntoView(row);
         }).fail(nf.Common.handleAjaxError);
 
         // hide the dialog
@@ -1147,6 +1148,7 @@ nf.Settings = (function () {
             // select the new reporting task
             var row = reportingTaskData.getRowById(reportingTask.id);
             reportingTaskGrid.setSelectedRows([row]);
+            reportingTaskGrid.scrollRowIntoView(row);
         }).fail(nf.Common.handleAjaxError);
 
         // hide the dialog
