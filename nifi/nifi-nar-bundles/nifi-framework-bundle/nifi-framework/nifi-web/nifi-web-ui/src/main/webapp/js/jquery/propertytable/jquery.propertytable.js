@@ -1015,9 +1015,10 @@
             
             var identifiesControllerService = nf.Common.isDefinedAndNotNull(propertyDescriptor.identifiesControllerService);
             var isConfigured = nf.Common.isDefinedAndNotNull(dataContext.value);
+            var isOnCanvas = nf.Common.isDefinedAndNotNull(nf.Canvas);
             
-            // check for allowable values which will drive which editor to use
-            if (identifiesControllerService && isConfigured) {
+            // check to see if we should provide a button for going to a controller service
+            if (identifiesControllerService && isConfigured && isOnCanvas) {
                 // ensure the configured value is referencing a valid service
                 $.each(propertyDescriptor.allowableValues, function (_, allowableValue) {
                     if (allowableValue.value === dataContext.value) {
