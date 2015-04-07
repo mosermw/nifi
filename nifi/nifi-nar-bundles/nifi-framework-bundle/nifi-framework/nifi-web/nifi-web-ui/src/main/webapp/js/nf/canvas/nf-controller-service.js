@@ -1141,6 +1141,10 @@ nf.ControllerService = (function () {
                     });
                 }
             }).fail(handleControllerServiceConfigurationError);
+        } else {
+            return $.Deferred(function (deferred) {
+                deferred.reject();
+            }).promise();
         }
     };
     
