@@ -23,7 +23,17 @@
  *
  * {
  *   readOnly: true,
- *   dialogContainer: 'body'
+ *   dialogContainer: 'body',
+ *   descriptorDeferred: function () {
+ *      return $.Deferred(function (deferred) {
+ *          deferred.resolve();
+ *      }).promise;
+ *   },
+ *   goToServiceDeferred: function () {
+ *      return $.Deferred(function (deferred) {
+ *          deferred.resolve();
+ *      }).promise;
+ *   }
  * }
  */
 
@@ -1084,6 +1094,39 @@
                 }
             }
         };
+        
+        var goToControllerService = function (property) {
+            // close the dialog
+            var dialog = table.closest('.dialog');
+            if (dialog.hasClass('modal')) {
+                dialog.modal('hide');
+            } else {
+                dialog.hide();
+            }
+
+            $.Deferred(function (deferred) {
+                if ($('#settings').is(':visible')) {
+                    deferred.resolve();
+                } else {
+                    // reload the settings and show
+                    nf.Settings.loadSettings().done(function () {
+                        nf.Settings.showSettings();
+                        deferred.resolve();
+                    });
+                }
+            }).done(function () {
+                var controllerServiceGrid = $('#controller-services-table').data('gridInstance');
+                var controllerServiceData = controllerServiceGrid.getData();
+
+                // select the desired service
+                var row = controllerServiceData.getRowById(property.value);
+                controllerServiceGrid.setSelectedRows([row]);
+                controllerServiceGrid.scrollRowIntoView(row);
+
+                // select the controller services tab
+                $('#settings-tabs').find('li:eq(1)').click();
+            });
+        };
 
         // initialize the grid
         var propertyGrid = new Slick.Grid(table, propertyData, propertyColumns, propertyConfigurationOptions);
@@ -1114,29 +1157,16 @@
                     // prevents standard edit logic
                     e.stopImmediatePropagation();
                 } else if (target.hasClass('go-to-service')) {
-                    // close the dialog
-                    var dialog = table.closest('.dialog');
-                    if (dialog.hasClass('modal')) {
-                        dialog.modal('hide');
+                    if (options.readOnly === true) {
+                        goToControllerService(property);
                     } else {
-                        dialog.hide();
+                        // load the property descriptor if possible
+                        if (typeof options.goToServiceDeferred === 'function') {
+                            options.goToServiceDeferred().done(function() {
+                                goToControllerService(property);
+                            });
+                        }
                     }
-                    
-                    // reload the settings and show
-                    nf.Settings.loadSettings().done(function () {
-                        nf.Settings.showSettings();
-                        
-                        var controllerServiceGrid = $('#controller-services-table').data('gridInstance');
-                        var controllerServiceData = controllerServiceGrid.getData();
-
-                        // select the selected row
-                        var row = controllerServiceData.getRowById(property.value);
-                        controllerServiceGrid.setSelectedRows([row]);
-                        controllerServiceGrid.scrollRowIntoView(row);
-                        
-                        // select the controller services tab
-                        $('#settings-tabs').find('li:eq(1)').click();
-                    });
                 }
             }
         });
