@@ -800,7 +800,8 @@
             $.each(response.controllerServiceTypes, function (i, controllerServiceType) {
                 options.push({
                     text: nf.Common.substringAfterLast(controllerServiceType.type, '.'),
-                    value: controllerServiceType.type
+                    value: controllerServiceType.type,
+                    description: nf.Common.escapeHtml(controllerServiceType.description)
                 });
             });
             
