@@ -25,6 +25,7 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.Queue;
 import javax.jms.Session;
+import javax.jms.TextMessage;
 import javax.jms.Topic;
 
 import org.apache.nifi.flowfile.FlowFile;
@@ -67,6 +68,72 @@ final class JMSPublisher extends JMSWorker {
         this.publish(destinationName, messageBytes, null);
     }
 
+
+    /**
+    *
+    * @param text String representing contents of the message
+    */
+    void publish(String text) {
+        this.publish(text, null);
+    }
+
+    private void enrichMessage(final Message message, final Map<String, String> flowFileAttributes) throws JMSException {
+        if (flowFileAttributes != null && !flowFileAttributes.isEmpty()) {
+            // set message headers and properties
+            for (Entry<String, String> entry : flowFileAttributes.entrySet()) {
+                if (!entry.getKey().startsWith(JmsHeaders.PREFIX) && !entry.getKey().contains("-")) {// '-' is illegal char in JMS prop names
+                    message.setStringProperty(entry.getKey(), entry.getValue());
+                } else if (entry.getKey().equals(JmsHeaders.DELIVERY_MODE)) {
+                    message.setJMSDeliveryMode(Integer.parseInt(entry.getValue()));
+                } else if (entry.getKey().equals(JmsHeaders.EXPIRATION)) {
+                    message.setJMSExpiration(Integer.parseInt(entry.getValue()));
+                } else if (entry.getKey().equals(JmsHeaders.PRIORITY)) {
+                    message.setJMSPriority(Integer.parseInt(entry.getValue()));
+                } else if (entry.getKey().equals(JmsHeaders.REDELIVERED)) {
+                    message.setJMSRedelivered(Boolean.parseBoolean(entry.getValue()));
+                } else if (entry.getKey().equals(JmsHeaders.TIMESTAMP)) {
+                    message.setJMSTimestamp(Long.parseLong(entry.getValue()));
+                } else if (entry.getKey().equals(JmsHeaders.CORRELATION_ID)) {
+                    message.setJMSCorrelationID(entry.getValue());
+                } else if (entry.getKey().equals(JmsHeaders.TYPE)) {
+                    message.setJMSType(entry.getValue());
+                } else if (entry.getKey().equals(JmsHeaders.REPLY_TO)) {
+                    Destination destination = buildDestination(entry.getValue());
+                    if (destination != null) {
+                        message.setJMSReplyTo(destination);
+                    } else {
+                        logUnbuildableDestination(entry.getKey(), JmsHeaders.REPLY_TO);
+                    }
+                } else if (entry.getKey().equals(JmsHeaders.DESTINATION)) {
+                    Destination destination = buildDestination(entry.getValue());
+                    if (destination != null) {
+                        message.setJMSDestination(destination);
+                    } else {
+                        logUnbuildableDestination(entry.getKey(), JmsHeaders.DESTINATION);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+    *
+    * @param text
+    *            String representing contents of the message
+    * @param flowFileAttributes
+    *            Map representing {@link FlowFile} attributes.
+    */
+   void publish(final String text, final Map<String, String> flowFileAttributes) {
+       this.jmsTemplate.send(new MessageCreator() {
+           @Override
+           public Message createMessage(Session session) throws JMSException {
+               TextMessage message = session.createTextMessage(text);
+               enrichMessage(message, flowFileAttributes);
+               return message;
+           }
+       });
+   }
+
     /**
      *
      * @param messageBytes
@@ -80,42 +147,7 @@ final class JMSPublisher extends JMSWorker {
             public Message createMessage(Session session) throws JMSException {
                 BytesMessage message = session.createBytesMessage();
                 message.writeBytes(messageBytes);
-                if (flowFileAttributes != null && !flowFileAttributes.isEmpty()) {
-                    // set message headers and properties
-                    for (Entry<String, String> entry : flowFileAttributes.entrySet()) {
-                        if (!entry.getKey().startsWith(JmsHeaders.PREFIX) && !entry.getKey().contains("-") && !entry.getKey().contains(".")) {// '-' and '.' are illegal char in JMS prop names
-                            message.setStringProperty(entry.getKey(), entry.getValue());
-                        } else if (entry.getKey().equals(JmsHeaders.DELIVERY_MODE)) {
-                            message.setJMSDeliveryMode(Integer.parseInt(entry.getValue()));
-                        } else if (entry.getKey().equals(JmsHeaders.EXPIRATION)) {
-                            message.setJMSExpiration(Integer.parseInt(entry.getValue()));
-                        } else if (entry.getKey().equals(JmsHeaders.PRIORITY)) {
-                            message.setJMSPriority(Integer.parseInt(entry.getValue()));
-                        } else if (entry.getKey().equals(JmsHeaders.REDELIVERED)) {
-                            message.setJMSRedelivered(Boolean.parseBoolean(entry.getValue()));
-                        } else if (entry.getKey().equals(JmsHeaders.TIMESTAMP)) {
-                            message.setJMSTimestamp(Long.parseLong(entry.getValue()));
-                        } else if (entry.getKey().equals(JmsHeaders.CORRELATION_ID)) {
-                            message.setJMSCorrelationID(entry.getValue());
-                        } else if (entry.getKey().equals(JmsHeaders.TYPE)) {
-                            message.setJMSType(entry.getValue());
-                        } else if (entry.getKey().equals(JmsHeaders.REPLY_TO)) {
-                            Destination destination = buildDestination(entry.getValue());
-                            if (destination != null) {
-                                message.setJMSReplyTo(destination);
-                            } else {
-                                logUnbuildableDestination(entry.getKey(), JmsHeaders.REPLY_TO);
-                            }
-                        } else if (entry.getKey().equals(JmsHeaders.DESTINATION)) {
-                            Destination destination = buildDestination(entry.getValue());
-                            if (destination != null) {
-                                message.setJMSDestination(destination);
-                            } else {
-                                logUnbuildableDestination(entry.getKey(), JmsHeaders.DESTINATION);
-                            }
-                        }
-                    }
-                }
+                enrichMessage(message, flowFileAttributes);
                 return message;
             }
         });
