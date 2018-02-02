@@ -68,48 +68,53 @@ final class JMSPublisher extends JMSWorker {
         this.publish(destinationName, messageBytes, null);
     }
 
-
     /**
     *
     * @param text String representing contents of the message
     */
-    void publish(String text) {
-        this.publish(text, null);
+    void publish(String destinationName, String text) {
+        this.publish(destinationName, text, null);
     }
 
-    private void enrichMessage(final Message message, final Map<String, String> flowFileAttributes) throws JMSException {
+    void setMessageHeaderAndProperties(final Message message, final Map<String, String> flowFileAttributes) throws JMSException {
         if (flowFileAttributes != null && !flowFileAttributes.isEmpty()) {
-            // set message headers and properties
             for (Entry<String, String> entry : flowFileAttributes.entrySet()) {
-                if (!entry.getKey().startsWith(JmsHeaders.PREFIX) && !entry.getKey().contains("-")) {// '-' is illegal char in JMS prop names
-                    message.setStringProperty(entry.getKey(), entry.getValue());
-                } else if (entry.getKey().equals(JmsHeaders.DELIVERY_MODE)) {
-                    message.setJMSDeliveryMode(Integer.parseInt(entry.getValue()));
-                } else if (entry.getKey().equals(JmsHeaders.EXPIRATION)) {
-                    message.setJMSExpiration(Integer.parseInt(entry.getValue()));
-                } else if (entry.getKey().equals(JmsHeaders.PRIORITY)) {
-                    message.setJMSPriority(Integer.parseInt(entry.getValue()));
-                } else if (entry.getKey().equals(JmsHeaders.REDELIVERED)) {
-                    message.setJMSRedelivered(Boolean.parseBoolean(entry.getValue()));
-                } else if (entry.getKey().equals(JmsHeaders.TIMESTAMP)) {
-                    message.setJMSTimestamp(Long.parseLong(entry.getValue()));
-                } else if (entry.getKey().equals(JmsHeaders.CORRELATION_ID)) {
-                    message.setJMSCorrelationID(entry.getValue());
-                } else if (entry.getKey().equals(JmsHeaders.TYPE)) {
-                    message.setJMSType(entry.getValue());
-                } else if (entry.getKey().equals(JmsHeaders.REPLY_TO)) {
-                    Destination destination = buildDestination(entry.getValue());
-                    if (destination != null) {
-                        message.setJMSReplyTo(destination);
-                    } else {
-                        logUnbuildableDestination(entry.getKey(), JmsHeaders.REPLY_TO);
+                try {
+                    if (!entry.getKey().startsWith(JmsHeaders.PREFIX) && !entry.getKey().contains("-") && !entry.getKey().contains(".")) {// '-' and '.' are illegal char in JMS prop names
+                        message.setStringProperty(entry.getKey(), entry.getValue());
+                    } else if (entry.getKey().equals(JmsHeaders.DELIVERY_MODE)) {
+                        message.setJMSDeliveryMode(Integer.parseInt(entry.getValue()));
+                    } else if (entry.getKey().equals(JmsHeaders.EXPIRATION)) {
+                        message.setJMSExpiration(Integer.parseInt(entry.getValue()));
+                    } else if (entry.getKey().equals(JmsHeaders.PRIORITY)) {
+                        message.setJMSPriority(Integer.parseInt(entry.getValue()));
+                    } else if (entry.getKey().equals(JmsHeaders.REDELIVERED)) {
+                        message.setJMSRedelivered(Boolean.parseBoolean(entry.getValue()));
+                    } else if (entry.getKey().equals(JmsHeaders.TIMESTAMP)) {
+                        message.setJMSTimestamp(Long.parseLong(entry.getValue()));
+                    } else if (entry.getKey().equals(JmsHeaders.CORRELATION_ID)) {
+                        message.setJMSCorrelationID(entry.getValue());
+                    } else if (entry.getKey().equals(JmsHeaders.TYPE)) {
+                        message.setJMSType(entry.getValue());
+                    } else if (entry.getKey().equals(JmsHeaders.REPLY_TO)) {
+                        Destination destination = buildDestination(entry.getValue());
+                        if (destination != null) {
+                            message.setJMSReplyTo(destination);
+                        } else {
+                            logUnbuildableDestination(entry.getKey(), JmsHeaders.REPLY_TO);
+                        }
+                    } else if (entry.getKey().equals(JmsHeaders.DESTINATION)) {
+                        Destination destination = buildDestination(entry.getValue());
+                        if (destination != null) {
+                            message.setJMSDestination(destination);
+                        } else {
+                            logUnbuildableDestination(entry.getKey(), JmsHeaders.DESTINATION);
+                        }
                     }
-                } else if (entry.getKey().equals(JmsHeaders.DESTINATION)) {
-                    Destination destination = buildDestination(entry.getValue());
-                    if (destination != null) {
-                        message.setJMSDestination(destination);
-                    } else {
-                        logUnbuildableDestination(entry.getKey(), JmsHeaders.DESTINATION);
+                } catch (NumberFormatException ne) {
+                    if (this.processLog.isDebugEnabled()) {
+                        this.processLog.debug("Incompatible value for attribute " + entry.getKey()
+                                +" [" + entry.getValue() + "] is not a number. Ignoring this attribute.");
                     }
                 }
             }
@@ -123,12 +128,12 @@ final class JMSPublisher extends JMSWorker {
     * @param flowFileAttributes
     *            Map representing {@link FlowFile} attributes.
     */
-   void publish(final String text, final Map<String, String> flowFileAttributes) {
-       this.jmsTemplate.send(new MessageCreator() {
+   void publish(final String destinationName, final String text, final Map<String, String> flowFileAttributes) {
+       this.jmsTemplate.send(destinationName, new MessageCreator() {
            @Override
            public Message createMessage(Session session) throws JMSException {
                TextMessage message = session.createTextMessage(text);
-               enrichMessage(message, flowFileAttributes);
+               setMessageHeaderAndProperties(message, flowFileAttributes);
                return message;
            }
        });
@@ -147,7 +152,7 @@ final class JMSPublisher extends JMSWorker {
             public Message createMessage(Session session) throws JMSException {
                 BytesMessage message = session.createBytesMessage();
                 message.writeBytes(messageBytes);
-                enrichMessage(message, flowFileAttributes);
+                setMessageHeaderAndProperties(message, flowFileAttributes);
                 return message;
             }
         });

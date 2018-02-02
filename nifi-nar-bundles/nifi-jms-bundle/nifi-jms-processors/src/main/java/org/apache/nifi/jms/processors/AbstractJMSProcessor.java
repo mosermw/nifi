@@ -95,6 +95,13 @@ abstract class AbstractJMSProcessor<T extends JMSWorker> extends AbstractProcess
             .defaultValue("1")
             .addValidator(StandardValidators.NON_NEGATIVE_INTEGER_VALIDATOR)
             .build();
+    static final PropertyDescriptor MESSAGE_BODY = new PropertyDescriptor.Builder()
+            .name("Message Body Type")
+            .description("The type of JMS message body to construct. When using a text message, the flowfile will be converted using the JVM default character encoding.")
+            .required(true)
+            .defaultValue("bytes")
+            .allowableValues("bytes", "text")
+            .build();
 
 
     // ConnectionFactoryProvider ControllerService
@@ -119,6 +126,7 @@ abstract class AbstractJMSProcessor<T extends JMSWorker> extends AbstractProcess
         propertyDescriptors.add(PASSWORD);
         propertyDescriptors.add(CLIENT_ID);
         propertyDescriptors.add(SESSION_CACHE_SIZE);
+        propertyDescriptors.add(MESSAGE_BODY);
     }
 
     protected volatile T targetResource;
