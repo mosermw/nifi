@@ -94,13 +94,13 @@
                 url: config.urls.about,
                 dataType: 'json'
         }).done(function (response) {
-            var aboutDetails = response.about;
+            var configDetails = response.about.config;
 
             // set the back pressure object threshold
-            $('#back-pressure-object-threshold').val(aboutDetails.backPressureObjectThreshold);
+            $('#back-pressure-object-threshold').val(configDetails.backPressureObjectThreshold);
 
             // set the back pressure data size threshold
-            $('#back-pressure-data-size-threshold').val(aboutDetails.backPressureDataSizeThreshold);
+            $('#back-pressure-data-size-threshold').val(configDetails.backPressureDataSizeThreshold);
 
             deferred.resolve();
         }).fail(function (xhr, status, error) {

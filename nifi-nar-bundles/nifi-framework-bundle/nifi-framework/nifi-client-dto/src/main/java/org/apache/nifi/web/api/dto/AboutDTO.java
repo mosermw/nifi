@@ -42,8 +42,7 @@ public class AboutDTO {
     private String buildBranch;
     private Date buildTimestamp;
 
-    private String backPressureObjectThreshold;
-    private String backPressureDataSizeThreshold;
+    private ConfigDTO config;
 
     /* getters / setters */
     /**
@@ -170,24 +169,13 @@ public class AboutDTO {
     }
 
     @ApiModelProperty(
-            value = "The default back pressure object threshold."
+            value = "The configuration information."
     )
-    public String getBackPressureObjectThreshold() {
-        return backPressureObjectThreshold;
+    public ConfigDTO getConfig() {
+        return config;
     }
 
-    public void setBackPressureObjectThreshold(String backPressureObjectThreshold) {
-        this.backPressureObjectThreshold = backPressureObjectThreshold;
-    }
-
-    @ApiModelProperty(
-            value = "The default back pressure data size threshold."
-    )
-    public String getBackPressureDataSizeThreshold() {
-        return backPressureDataSizeThreshold;
-    }
-
-    public void setBackPressureDataSizeThreshold(String backPressureDataSizeThreshold) {
-        this.backPressureDataSizeThreshold = backPressureDataSizeThreshold;
+    public void setConfig(ConfigDTO config) {
+        this.config = config;
     }
 }
