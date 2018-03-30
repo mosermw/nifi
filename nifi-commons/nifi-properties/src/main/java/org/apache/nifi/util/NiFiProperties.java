@@ -252,7 +252,7 @@ public abstract class NiFiProperties {
     public static final String DEFAULT_SWAP_OUT_PERIOD = "5 sec";
     public static final int DEFAULT_SWAP_IN_THREADS = 4;
     public static final int DEFAULT_SWAP_OUT_THREADS = 4;
-    public static final String DEFAULT_BACKPRESSURE_COUNT = "10000";
+    public static final long DEFAULT_BACKPRESSURE_COUNT = 10_000L;
     public static final String DEFAULT_BACKPRESSURE_SIZE = "1 GB";
     public static final String DEFAULT_ADMINISTRATIVE_YIELD_DURATION = "30 sec";
     public static final String DEFAULT_PERSISTENT_STATE_DIRECTORY = "./conf/state";
@@ -1386,11 +1386,22 @@ public abstract class NiFiProperties {
         ).collect(Collectors.toList());
     }
 
-    public String getBackPressureObjectThreshold() {
-        return getProperty(BACKPRESSURE_COUNT, DEFAULT_BACKPRESSURE_COUNT);
+    public Long getDefaultBackPressureObjectThreshold() {
+        long backPressureCount;
+        try {
+            String backPressureCountStr = getProperty(BACKPRESSURE_COUNT);
+            if (backPressureCountStr == null || backPressureCountStr.trim().isEmpty()) {
+                backPressureCount = DEFAULT_BACKPRESSURE_COUNT;
+            } else {
+                backPressureCount = Long.parseLong(backPressureCountStr);
+            }
+        } catch (NumberFormatException nfe) {
+            backPressureCount = DEFAULT_BACKPRESSURE_COUNT;
+        }
+        return backPressureCount;
     }
 
-    public String getBackPressureDataSizeThreshold() {
+    public String getDefaultBackPressureDataSizeThreshold() {
         return getProperty(BACKPRESSURE_SIZE, DEFAULT_BACKPRESSURE_SIZE);
     }
 

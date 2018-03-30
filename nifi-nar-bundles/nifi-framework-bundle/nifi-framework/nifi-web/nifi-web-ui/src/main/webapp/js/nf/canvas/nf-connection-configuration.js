@@ -56,14 +56,16 @@
     var nfBirdseye;
     var nfGraph;
 
+    var defaultBackPressureObjectThreshold;
+    var defaultBackPressureDataSizeThreshold;
+
     var CONNECTION_OFFSET_Y_INCREMENT = 75;
     var CONNECTION_OFFSET_X_INCREMENT = 200;
 
     var config = {
         urls: {
             api: '../nifi-api',
-            prioritizers: '../nifi-api/flow/prioritizers',
-            about: '../nifi-api/flow/about'
+            prioritizers: '../nifi-api/flow/prioritizers'
         }
     };
 
@@ -83,34 +85,6 @@
             $('#connection-configuration').modal('refreshButtons');
         });
     }
-
-    /**
-     * Loads the controller configuration.
-     */
-    var loadBackPressureDefaults = function () {
-        var deferred = $.Deferred();
-        $.ajax({
-                type: 'GET',
-                url: config.urls.about,
-                dataType: 'json'
-        }).done(function (response) {
-            var configDetails = response.about.config;
-
-            // set the back pressure object threshold
-            $('#back-pressure-object-threshold').val(configDetails.backPressureObjectThreshold);
-
-            // set the back pressure data size threshold
-            $('#back-pressure-data-size-threshold').val(configDetails.backPressureDataSizeThreshold);
-
-            deferred.resolve();
-        }).fail(function (xhr, status, error) {
-            // handle the error
-            nfErrorHandler.handleAjaxError(xhr, status, error);
-
-            deferred.reject();
-        });
-        return deferred.promise();
-    };
 
     /**
      * Initializes the source in the new connection dialog.
@@ -1204,9 +1178,12 @@
          * @param nfBirdseyeRef   The nfBirdseye module.
          * @param nfGraphRef   The nfGraph module.
          */
-        init: function (nfBirdseyeRef, nfGraphRef) {
+        init: function (nfBirdseyeRef, nfGraphRef, defaultBackPressureObjectThresholdRef, defaultBackPressureDataSizeThresholdRef) {
             nfBirdseye = nfBirdseyeRef;
             nfGraph = nfGraphRef;
+
+            defaultBackPressureObjectThreshold = defaultBackPressureObjectThresholdRef;
+            defaultBackPressureDataSizeThreshold = defaultBackPressureDataSizeThresholdRef;
 
             // initially hide the relationship names container
             $('#relationship-names-container').hide();
@@ -1301,9 +1278,11 @@
             }
 
             // initialize the connection dialog
-            $.when(initializeSourceNewConnectionDialog(source), initializeDestinationNewConnectionDialog(destination), loadBackPressureDefaults()).done(function () {
+            $.when(initializeSourceNewConnectionDialog(source), initializeDestinationNewConnectionDialog(destination)).done(function () {
                 // set the default values
                 $('#flow-file-expiration').val('0 sec');
+                $('#back-pressure-object-threshold').val(defaultBackPressureObjectThreshold);
+                $('#back-pressure-data-size-threshold').val(defaultBackPressureDataSizeThreshold);
 
                 // select the first tab
                 $('#connection-configuration-tabs').find('li:first').click();

@@ -51,7 +51,6 @@ import org.apache.nifi.web.api.dto.BulletinBoardDTO;
 import org.apache.nifi.web.api.dto.BulletinQueryDTO;
 import org.apache.nifi.web.api.dto.ClusterDTO;
 import org.apache.nifi.web.api.dto.ClusterSummaryDTO;
-import org.apache.nifi.web.api.dto.ConfigDTO;
 import org.apache.nifi.web.api.dto.NodeDTO;
 import org.apache.nifi.web.api.dto.ProcessGroupDTO;
 import org.apache.nifi.web.api.dto.RevisionDTO;
@@ -1301,12 +1300,6 @@ public class FlowResource extends ApplicationResource {
             aboutDTO.setBuildBranch(frameworkDetails.getBuildBranch());
             aboutDTO.setBuildTimestamp(frameworkDetails.getBuildTimestampDate());
         }
-
-        // get default back pressure configuration
-        final ConfigDTO configDTO = new ConfigDTO();
-        configDTO.setBackPressureObjectThreshold(properties.getBackPressureObjectThreshold());
-        configDTO.setBackPressureDataSizeThreshold(properties.getBackPressureDataSizeThreshold());
-        aboutDTO.setConfig(configDTO);
 
         // create the response entity
         final AboutEntity entity = new AboutEntity();

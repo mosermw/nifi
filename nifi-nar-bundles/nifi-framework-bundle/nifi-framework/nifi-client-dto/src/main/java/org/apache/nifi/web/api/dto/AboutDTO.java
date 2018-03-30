@@ -42,8 +42,6 @@ public class AboutDTO {
     private String buildBranch;
     private Date buildTimestamp;
 
-    private ConfigDTO config;
-
     /* getters / setters */
     /**
      * The title to be used on the page and in the About dialog.
@@ -166,16 +164,5 @@ public class AboutDTO {
 
     public void setBuildTimestamp(Date buildTimestamp) {
         this.buildTimestamp = buildTimestamp;
-    }
-
-    @ApiModelProperty(
-            value = "The configuration information."
-    )
-    public ConfigDTO getConfig() {
-        return config;
-    }
-
-    public void setConfig(ConfigDTO config) {
-        this.config = config;
     }
 }
