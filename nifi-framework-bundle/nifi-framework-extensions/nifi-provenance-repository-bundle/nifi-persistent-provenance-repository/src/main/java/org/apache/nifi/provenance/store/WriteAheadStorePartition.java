@@ -511,24 +511,27 @@ public class WriteAheadStorePartition implements EventStorePartition {
                 .minus(olderThan, timeUnit)
                 .toInstant().toEpochMilli();
 
-        final List<FileInfo> removed = files.stream()
+        final List<FileInfo> eventFilesToDelete = files.stream()
                 .filter(DirectoryUtils.EVENT_PATH_FILTER)
                 .filter(fileinfo -> fileinfo.lastModified().toInstant().toEpochMilli() < timeCutoff)
-                .filter(fileinfo -> delete(fileinfo.path().toFile()))
                 .toList();
 
+        List<String> filesDeleted = new ArrayList<>();
         long bytesDeleted = 0;
-        for (FileInfo file : removed) {
-            bytesDeleted += file.size();
+        for (FileInfo file : eventFilesToDelete) {
+            if (delete(file.path().toFile())) {
+                filesDeleted.add(file.path().toString());
+                bytesDeleted += file.size();
+                files.remove(file);
+            }
         }
-        files.removeAll(removed);
 
         String thresholdWords = FormatUtils.formatDurationToWords(olderThan, timeUnit);
-        if (removed.isEmpty()) {
+        if (filesDeleted.isEmpty()) {
             logger.debug("No Provenance Event files that exceed time-based threshold of {}", thresholdWords);
         } else {
             logger.info("Purged {} Provenance Event files from Provenance Repository because the events were older than {} : {}",
-                    removed.size(), thresholdWords, removed.stream().map(FileInfo::path).toList());
+                    filesDeleted.size(), thresholdWords, filesDeleted);
         }
 
         return bytesDeleted;
@@ -558,18 +561,19 @@ public class WriteAheadStorePartition implements EventStorePartition {
             return 0L;
         }
 
-        FileInfo file = eventFiles.getFirst();
-        final File eventFile = file.path().toFile();
-        if (eventFile.equals(currentFile)) {
-            return 0L;
-        }
+        for (final FileInfo file : eventFiles) {
+            final File eventFile = file.path().toFile();
+            if (eventFile.equals(currentFile)) {
+                return 0L;
+            }
 
-        final long fileSize = file.size();
+            final long fileSize = file.size();
 
-        if (delete(eventFile)) {
-            files.remove(file);
-            logger.info("{} Deleted {} event file ({}) due to storage limits", this, eventFile, FormatUtils.formatDataSize(fileSize));
-            return fileSize;
+            if (delete(eventFile)) {
+                files.remove(file);
+                logger.info("{} Deleted {} event file ({}) due to storage limits", this, eventFile, FormatUtils.formatDataSize(fileSize));
+                return fileSize;
+            }
         }
 
         return 0L;
@@ -589,14 +593,17 @@ public class WriteAheadStorePartition implements EventStorePartition {
 
         eventFileManager.obtainWriteLock(file);
         try {
-            if (file.exists() && !file.delete()) {
-                logger.warn("Failed to remove Provenance Event file {}; this file should be cleaned up manually", file);
-                return false;
-            }
+            if (file.exists()) {
+                if (!file.delete()) {
+                    logger.warn("Failed to remove Provenance Event file {}; this file should be cleaned up manually", file);
+                    return false;
+                }
 
-            final File tocFile = TocUtil.getTocFile(file);
-            if (tocFile.exists() && !tocFile.delete()) {
-                logger.warn("Failed to remove Provenance Table-of-Contents file {}; this file should be cleaned up manually", tocFile);
+                // delete Table-of-Contents file if event file was deleted
+                final File tocFile = TocUtil.getTocFile(file);
+                if (tocFile.exists() && !tocFile.delete()) {
+                    logger.warn("Failed to remove Provenance Table-of-Contents file {}; this file should be cleaned up manually", tocFile);
+                }
             }
 
             return true;

@@ -101,8 +101,12 @@ public class DirectoryUtils {
             }
 
             @Override
-            public FileVisitResult visitFileFailed(Path path, IOException ex) {
-                // Skip folders and files that we fail to read instead of halting the whole process with an exception
+            public FileVisitResult visitFileFailed(Path path, IOException ex) throws IOException {
+                if (directory.equals(path)) {
+                    // if visit to root 'directory' fails, throw the IOException
+                    throw ex;
+                }
+                // otherwise, skip folders and files we cannot read instead of halting the whole process
                 return FileVisitResult.CONTINUE;
             }
         });
