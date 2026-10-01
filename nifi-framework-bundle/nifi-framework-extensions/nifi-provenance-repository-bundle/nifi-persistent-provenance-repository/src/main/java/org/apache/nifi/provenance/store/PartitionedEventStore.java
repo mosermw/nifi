@@ -273,6 +273,7 @@ public abstract class PartitionedEventStore implements EventStore {
             // Delete the oldest event files exceeding the max storage size
             long three = System.nanoTime();
             final long maxStorageCapacity = repoConfig.getMaxStorageCapacity();
+            long filesDeleted = 0;
             long removedBytesThisPass = 1;
             while (currentSize > maxStorageCapacity && removedBytesThisPass > 0) {
                 removedBytesThisPass = 0;
@@ -280,6 +281,7 @@ public abstract class PartitionedEventStore implements EventStore {
                     try {
                         List<FileInfo> partitionFiles = partitionFilesMap.get(partition.getPartitionName());
                         removedBytesThisPass += partition.purgeOldestEvents(partitionFiles);
+                        filesDeleted++;
                     } catch (final Exception e) {
                         logger.error("Failed to purge oldest events from {}", partition, e);
                         eventReporter.reportEvent(Severity.WARNING, EVENT_CATEGORY,
@@ -290,7 +292,8 @@ public abstract class PartitionedEventStore implements EventStore {
             }
 
             long end = System.nanoTime();
-            logger.info("Purge provenance in {} (listing={}) (repoSize={}) (age={}) (size={})",
+            logger.info("Purge {} provenance in {} (listing={}) (repoSize={}) (age={}) (size={})",
+                    filesDeleted,
                     end - start,
                     one - start,
                     two - one,

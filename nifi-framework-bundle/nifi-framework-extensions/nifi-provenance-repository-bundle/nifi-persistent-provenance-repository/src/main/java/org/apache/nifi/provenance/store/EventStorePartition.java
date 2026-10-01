@@ -125,7 +125,7 @@ public interface EventStorePartition extends Closeable {
     /**
      * Purges one event file containing some number of events from the partition. The oldest events will be purged.
      *
-     * @param files the list of files in the partition; must be mutable because purged files are removed from this lise
+     * @param files the list of files in the partition; must be mutable because purged files are removed from this list
      * @return the number of bytes purged from the partition
      */
     long purgeOldestEvents(List<FileInfo> files);
