@@ -20,6 +20,9 @@ package org.apache.nifi.provenance.util;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 
+/**
+ * A Record of information about a File.
+ */
 public record FileInfo(
         Path path,
         long size,
