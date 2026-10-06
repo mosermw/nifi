@@ -232,7 +232,6 @@ public abstract class PartitionedEventStore implements EventStore {
 
     void performMaintenance() {
         try {
-            long start = System.nanoTime();
             // Scan each partition for info about every file on the file system. Save this listing for use below
             final Map<String, List<FileInfo>> partitionFilesMap = new HashMap<>();
             try {
@@ -248,7 +247,6 @@ public abstract class PartitionedEventStore implements EventStore {
             }
 
             // Calculate disk space used by all files in all partitions
-            long one = System.nanoTime();
             long currentSize = 0;
             for (final List<FileInfo> partitionFiles : partitionFilesMap.values()) {
                 for (FileInfo file : partitionFiles) {
@@ -257,7 +255,6 @@ public abstract class PartitionedEventStore implements EventStore {
             }
 
             // Delete event files exceeding the max storage time
-            long two = System.nanoTime();
             final long maxFileLife = repoConfig.getMaxRecordLife(TimeUnit.MILLISECONDS);
             for (final EventStorePartition partition : getPartitions()) {
                 try {
@@ -271,7 +268,6 @@ public abstract class PartitionedEventStore implements EventStore {
             }
 
             // Delete the oldest event files exceeding the max storage size
-            long three = System.nanoTime();
             final long maxStorageCapacity = repoConfig.getMaxStorageCapacity();
             long filesDeleted = 0;
             long removedBytesThisPass = 1;
@@ -290,15 +286,6 @@ public abstract class PartitionedEventStore implements EventStore {
                 }
                 currentSize -= removedBytesThisPass;
             }
-
-            long end = System.nanoTime();
-            logger.info("Purge {} provenance in {} (listing={}) (repoSize={}) (age={}) (size={})",
-                    filesDeleted,
-                    end - start,
-                    one - start,
-                    two - one,
-                    three - two,
-                    end - three);
         } catch (final Exception e) {
             logger.error("Failed to perform periodic maintenance", e);
             eventReporter.reportEvent(Severity.ERROR, EVENT_CATEGORY,
