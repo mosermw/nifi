@@ -575,6 +575,8 @@ public class WriteAheadStorePartition implements EventStorePartition {
                 files.remove(file);
                 logger.info("{} Deleted {} event file ({}) due to storage limits", this, eventFile, FormatUtils.formatDataSize(fileSize));
                 return fileSize;
+            } else {
+                logger.warn("{} Failed to delete event file {}. This file should be cleaned up manually.", this, eventFile);
             }
         }
 
